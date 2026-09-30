@@ -1,5 +1,5 @@
 [package]
-name = "my-addon-native"
+name = "object-store-native"
 version = "0.1.0"
 edition = "2024"
 
@@ -7,8 +7,13 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
-napi = "3"
+bytes = "1"
+futures = "0.3"
+napi = { version = "3", features = ["async", "tokio_rt"] }
 napi-derive = "3"
+object_store = { version = "0.14.2", features = ["fs"] }
+tokio = { version = "1", features = ["full"] }
+url = "2"
 
 [build-dependencies]
 napi-build = "2"

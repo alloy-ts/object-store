@@ -1,11 +1,13 @@
 {
-  "name": "my-addon",
+  "name": "@lib/object-store",
   "version": "0.1.0",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "*.node"
+  ],
   "main": "index.js",
   "types": "index.d.ts",
-  "files": [
-    "dist"
-  ],
   "exports": {
     ".": "./index.js",
     "./package.json": "./package.json"
@@ -22,8 +24,19 @@
     "prepublishOnly": "vp run build",
     "prepare": "vp config"
   },
+  "devDependencies": {
+    "@napi-rs/cli": "^3",
+    "@types/node": "^26.6.2",
+    "vite-plus": "^1.0.0-rc.1"
+  },
+  "peerDependencies": {
+    "typescript": "^7.0.2"
+  },
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0-rc.1"
+  },
   "napi": {
-    "binaryName": "my-addon",
+    "binaryName": "object-store",
     "targets": [
       "x86_64-apple-darwin",
       "aarch64-apple-darwin",
@@ -40,17 +53,6 @@
       "x86_64-unknown-freebsd",
       "wasm32-wasip1-threads"
     ]
-  },
-  "devDependencies": {
-    "@napi-rs/cli": "^3",
-    "@types/node": "^26.6.2",
-    "vite-plus": "^1.0.0-rc.1"
-  },
-  "peerDependencies": {
-    "typescript": "^7.0.2"
-  },
-  "overrides": {
-    "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0-rc.1"
   },
   "devEngines": {
     "packageManager": {
