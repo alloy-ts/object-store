@@ -19,6 +19,7 @@ async function run() {
     useNapiCross,
     crossCompile,
     useCross,
+    outputDir: "build",
   });
 }
 

@@ -7,8 +7,11 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-napi = "3"
+napi = { version = "3", features = ["tokio_rt"] }
 napi-derive = "3"
+object_store = "0.14.2"
+futures = "0.3"
+url = "2"
 
 [build-dependencies]
 napi-build = "2"
