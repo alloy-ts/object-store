@@ -2,12 +2,9 @@ pub mod copy;
 pub mod delete;
 pub mod factory;
 pub mod get;
-pub mod get_opts;
-pub mod get_ranges;
 pub mod head;
 pub mod list;
 pub mod put;
-pub mod put_opts;
 pub mod rename;
 pub mod types;
 
@@ -16,10 +13,9 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 
 pub use copy::CopyOptions;
-pub use get::GetResult;
-pub use get_opts::GetOptions;
+pub use get::{GetOptions, GetResult};
 pub use list::ListResult;
-pub use put_opts::{PutOptions, PutResult};
+pub use put::{PutOptions, PutResult};
 pub use rename::RenameOptions;
 pub use types::*;
 
@@ -64,7 +60,7 @@ impl ObjectStore {
     #[napi(ts_arg_type = "Uint8Array | Buffer")] payload: Uint8Array,
     options: Option<PutOptions>,
   ) -> Result<PutResult> {
-    put_opts::put_opts(self, path, payload, options).await
+    put::put_opts(self, path, payload, options).await
   }
 
   #[napi]
@@ -79,12 +75,12 @@ impl ObjectStore {
 
   #[napi]
   pub async fn get_opts(&self, path: String, options: Option<GetOptions>) -> Result<Buffer> {
-    get_opts::get_opts(self, path, options).await
+    get::get_opts(self, path, options).await
   }
 
   #[napi]
   pub async fn get_ranges(&self, path: String, ranges: Vec<RangeInput>) -> Result<Vec<Buffer>> {
-    get_ranges::get_ranges(self, path, ranges).await
+    get::get_ranges(self, path, ranges).await
   }
 
   #[napi]
