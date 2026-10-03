@@ -10,7 +10,7 @@ test("Put - put and putOpts", async () => {
   const data1 = await store.get("file.txt");
   expect(data1.toString()).toBe("content");
 
-  const res2 = await store.putOpts("file.txt", Buffer.from("new content"), {
+  const res2 = await store.put("file.txt", Buffer.from("new content"), {
     modeOverwrite: true,
   });
   expect(res2).toBeDefined();
