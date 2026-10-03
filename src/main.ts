@@ -1,5 +1,6 @@
 export { ObjectStore, ParsedUrl, parseUrl } from "../build/index.js";
 export type {
+  CopyOptionsParam,
   GetOptionsParam,
   GetResult,
   ListResult,
@@ -7,4 +8,6 @@ export type {
   PutOptionsParam,
   PutResult,
   RangeParam,
+  RenameOptionsParam,
+  UpdateVersion,
 } from "../build/index.d.ts";
