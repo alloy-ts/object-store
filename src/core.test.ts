@@ -38,8 +38,8 @@ test("Core API - Vectored Read (getRanges)", async () => {
   ]);
 
   expect(ranges.length).toBe(2);
-  expect(ranges[0].toString()).toBe("0123456789");
-  expect(ranges[1].toString()).toBe("ABCDEFGHIJ");
+  expect(ranges[0]!.toString()).toBe("0123456789");
+  expect(ranges[1]!.toString()).toBe("ABCDEFGHIJ");
 });
 
 test("Core API - Copy, Rename, Delete", async () => {

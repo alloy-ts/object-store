@@ -11,6 +11,6 @@ test("Ranges - getRanges", async () => {
   ]);
 
   expect(ranges.length).toBe(2);
-  expect(ranges[0].toString()).toBe("0123");
-  expect(ranges[1].toString()).toBe("5678");
+  expect(ranges[0]!.toString()).toBe("0123");
+  expect(ranges[1]!.toString()).toBe("5678");
 });

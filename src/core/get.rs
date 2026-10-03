@@ -1,9 +1,10 @@
 use crate::core::store::ObjectStore;
 use crate::core::types::{convert_meta, GetOptionsInput, GetResult};
+use chrono::DateTime;
 use napi::bindgen_prelude::Buffer;
 use napi_derive::napi;
 use object_store::path::Path;
-use object_store::{GetOptions, ObjectStoreExt};
+use object_store::{GetOptions, GetRange, ObjectStoreExt};
 
 #[napi]
 impl ObjectStore {
@@ -42,11 +43,7 @@ impl ObjectStore {
   }
 
   #[napi]
-  pub async fn get_opts(
-    &self,
-    path: String,
-    options: GetOptionsInput,
-  ) -> napi::Result<Buffer> {
+  pub async fn get_opts(&self, path: String, options: GetOptionsInput) -> napi::Result<Buffer> {
     let location = Path::from(path.as_str());
     let mut opts = GetOptions::default();
 
@@ -56,8 +53,30 @@ impl ObjectStore {
     if let Some(if_none_match) = options.if_none_match {
       opts.if_none_match = Some(if_none_match);
     }
-    if let (Some(start), Some(end)) = (options.range_start, options.range_end) {
-      opts.range = Some(((start as u64)..(end as u64)).into());
+    if let Some(ms) = options.if_modified_since {
+      if let Some(dt) = DateTime::from_timestamp_millis(ms) {
+        opts.if_modified_since = Some(dt);
+      }
+    }
+    if let Some(ms) = options.if_unmodified_since {
+      if let Some(dt) = DateTime::from_timestamp_millis(ms) {
+        opts.if_unmodified_since = Some(dt);
+      }
+    }
+    if let Some(r) = options.range {
+      if let (Some(start), Some(end)) = (r.start, r.end) {
+        opts.range = Some(GetRange::Bounded((start as u64)..(end as u64)));
+      } else if let Some(offset) = r.offset {
+        opts.range = Some(GetRange::Offset(offset as u64));
+      } else if let Some(suffix) = r.suffix {
+        opts.range = Some(GetRange::Suffix(suffix as u64));
+      }
+    }
+    if let Some(v) = options.version {
+      opts.version = Some(v);
+    }
+    if let Some(h) = options.head {
+      opts.head = h;
     }
 
     let res = self
