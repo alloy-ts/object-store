@@ -2,7 +2,7 @@ use napi::bindgen_prelude::*;
 use object_store::path::Path;
 use object_store::ObjectStoreExt;
 
-use crate::core::types::{CopyOptionsParam, ObjectStore};
+use crate::core::types::{CopyOptions, ObjectStore};
 
 pub async fn store_copy(store: &ObjectStore, from: String, to: String) -> Result<()> {
   let from_p = Path::from(from.as_str());
@@ -19,7 +19,7 @@ pub async fn store_copy_opts(
   store: &ObjectStore,
   from: String,
   to: String,
-  options: CopyOptionsParam,
+  options: CopyOptions,
 ) -> Result<()> {
   let from_p = Path::from(from.as_str());
   let to_p = Path::from(to.as_str());

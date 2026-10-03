@@ -2,7 +2,7 @@ use napi::bindgen_prelude::*;
 use object_store::path::Path;
 use object_store::ObjectStoreExt;
 
-use crate::core::types::{ObjectStore, RenameOptionsParam};
+use crate::core::types::{ObjectStore, RenameOptions};
 
 pub async fn store_rename(store: &ObjectStore, from: String, to: String) -> Result<()> {
   let from_p = Path::from(from.as_str());
@@ -19,7 +19,7 @@ pub async fn store_rename_opts(
   store: &ObjectStore,
   from: String,
   to: String,
-  options: RenameOptionsParam,
+  options: RenameOptions,
 ) -> Result<()> {
   let from_p = Path::from(from.as_str());
   let to_p = Path::from(to.as_str());

@@ -1,13 +1,19 @@
 export { ObjectStore, ParsedUrl, parseUrl } from "../build/index.js";
 export type {
-  CopyOptionsParam,
-  GetOptionsParam,
+  AttributeValue,
+  Attributes,
+  BackoffConfig,
+  CopyOptions,
+  GetOptions,
   GetResult,
   ListResult,
   ObjectMeta,
-  PutOptionsParam,
+  PutMultipartOptions,
+  PutOptions,
   PutResult,
   RangeParam,
-  RenameOptionsParam,
+  RenameOptions,
+  RetryConfig,
+  TagSet,
   UpdateVersion,
 } from "../build/index.d.ts";

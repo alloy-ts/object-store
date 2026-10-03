@@ -15,6 +15,35 @@ use crate::core::put::{store_put, store_put_opts};
 use crate::core::rename::{store_rename, store_rename_opts};
 
 #[napi(object)]
+pub struct AttributeValue {
+  pub value: String,
+}
+
+#[napi(object)]
+pub struct Attributes {
+  pub values: HashMap<String, String>,
+}
+
+#[napi(object)]
+pub struct BackoffConfig {
+  pub init_backoff_ms: i64,
+  pub max_backoff_ms: i64,
+  pub base: f64,
+}
+
+#[napi(object)]
+pub struct RetryConfig {
+  pub max_retries: i32,
+  pub backoff: Option<BackoffConfig>,
+  pub retry_timeout_ms: i64,
+}
+
+#[napi(object)]
+pub struct TagSet {
+  pub tags: HashMap<String, String>,
+}
+
+#[napi(object)]
 pub struct ObjectMeta {
   pub location: String,
   pub last_modified: String,
@@ -48,7 +77,7 @@ pub struct RangeParam {
 }
 
 #[napi(object)]
-pub struct GetOptionsParam {
+pub struct GetOptions {
   pub if_match: Option<String>,
   pub if_none_match: Option<String>,
   pub if_modified_since: Option<String>,
@@ -65,18 +94,27 @@ pub struct UpdateVersion {
 }
 
 #[napi(object)]
-pub struct PutOptionsParam {
+pub struct PutOptions {
   pub mode: Option<String>,
   pub version: Option<UpdateVersion>,
+  pub tags: Option<HashMap<String, String>>,
+  pub attributes: Option<HashMap<String, String>>,
 }
 
 #[napi(object)]
-pub struct CopyOptionsParam {
+pub struct PutMultipartOptions {
+  pub headers: Option<HashMap<String, String>>,
+  pub attributes: Option<HashMap<String, String>>,
+  pub tags: Option<HashMap<String, String>>,
+}
+
+#[napi(object)]
+pub struct CopyOptions {
   pub mode: Option<String>,
 }
 
 #[napi(object)]
-pub struct RenameOptionsParam {
+pub struct RenameOptions {
   pub mode: Option<String>,
 }
 
@@ -123,7 +161,7 @@ impl ObjectStore {
     &self,
     path: String,
     bytes: Buffer,
-    options: PutOptionsParam,
+    options: PutOptions,
   ) -> Result<PutResult> {
     store_put_opts(self, path, bytes, options).await
   }
@@ -134,7 +172,7 @@ impl ObjectStore {
   }
 
   #[napi]
-  pub async fn get_opts(&self, path: String, options: GetOptionsParam) -> Result<GetResult> {
+  pub async fn get_opts(&self, path: String, options: GetOptions) -> Result<GetResult> {
     store_get_opts(self, path, options).await
   }
 
@@ -178,7 +216,7 @@ impl ObjectStore {
     &self,
     from: String,
     to: String,
-    options: CopyOptionsParam,
+    options: CopyOptions,
   ) -> Result<()> {
     store_copy_opts(self, from, to, options).await
   }
@@ -193,7 +231,7 @@ impl ObjectStore {
     &self,
     from: String,
     to: String,
-    options: RenameOptionsParam,
+    options: RenameOptions,
   ) -> Result<()> {
     store_rename_opts(self, from, to, options).await
   }

@@ -2,7 +2,7 @@ use napi::bindgen_prelude::*;
 use object_store::path::Path;
 use object_store::ObjectStoreExt;
 
-use crate::core::types::{convert_meta, GetOptionsParam, GetResult, ObjectStore, RangeParam};
+use crate::core::types::{convert_meta, GetOptions, GetResult, ObjectStore, RangeParam};
 
 pub async fn store_get(store: &ObjectStore, path: String) -> Result<GetResult> {
   let p = Path::from(path.as_str());
@@ -25,7 +25,7 @@ pub async fn store_get(store: &ObjectStore, path: String) -> Result<GetResult> {
 pub async fn store_get_opts(
   store: &ObjectStore,
   path: String,
-  options: GetOptionsParam,
+  options: GetOptions,
 ) -> Result<GetResult> {
   let p = Path::from(path.as_str());
   let mut opts = object_store::GetOptions::default();

@@ -2,7 +2,7 @@ use napi::bindgen_prelude::*;
 use object_store::path::Path;
 use object_store::ObjectStoreExt;
 
-use crate::core::types::{ObjectStore, PutOptionsParam, PutResult};
+use crate::core::types::{ObjectStore, PutOptions, PutResult};
 
 pub async fn store_put(store: &ObjectStore, path: String, bytes: Buffer) -> Result<PutResult> {
   let p = Path::from(path.as_str());
@@ -22,7 +22,7 @@ pub async fn store_put_opts(
   store: &ObjectStore,
   path: String,
   bytes: Buffer,
-  options: PutOptionsParam,
+  options: PutOptions,
 ) -> Result<PutResult> {
   let p = Path::from(path.as_str());
   let payload = object_store::PutPayload::from(bytes.to_vec());
