@@ -6,7 +6,7 @@ use napi_derive::napi;
 use object_store::ObjectStore as ObjectStoreTrait;
 
 use crate::core::copy::{store_copy, store_copy_opts};
-use crate::core::delete::store_delete;
+use crate::core::delete::{store_delete, store_delete_stream};
 use crate::core::factory::{store_from_url, store_in_memory, store_local};
 use crate::core::get::{store_get, store_get_opts, store_get_range, store_get_ranges};
 use crate::core::head::store_head;
@@ -194,6 +194,11 @@ impl ObjectStore {
   #[napi]
   pub async fn delete(&self, path: String) -> Result<()> {
     store_delete(self, path).await
+  }
+
+  #[napi]
+  pub async fn delete_stream(&self, paths: Vec<String>) -> Result<()> {
+    store_delete_stream(self, paths).await
   }
 
   #[napi]
