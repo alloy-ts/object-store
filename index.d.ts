@@ -68,18 +68,47 @@ export interface RenameOptionsInput {
   targetModeCreate?: boolean;
 }
 
+export interface HeadOptionsInput {
+  ifMatch?: string;
+  ifNoneMatch?: string;
+  ifModifiedSince?: number;
+  ifUnmodifiedSince?: number;
+  version?: string;
+}
+
+export interface DeleteOptionsInput {
+  dummy?: boolean;
+}
+
+export interface ListOptionsInput {
+  offset?: string;
+}
+
+export interface PutMultipartOptionsInput {
+  dummy?: boolean;
+}
+
 export declare class ObjectStore {
   static createInMemory(): ObjectStore;
   static createLocal(rootPath: string): ObjectStore;
   static parseUrl(url: string, options?: Record<string, string> | undefined | null): ObjectStore;
   copy(from: string, to: string, options?: CopyOptionsInput | undefined | null): Promise<void>;
   copyOpts(from: string, to: string, options?: CopyOptionsInput | undefined | null): Promise<void>;
-  delete(path: string): Promise<void>;
+  delete(path: string, options?: DeleteOptionsInput | undefined | null): Promise<void>;
+  deleteOpts(path: string, options?: DeleteOptionsInput | undefined | null): Promise<void>;
   get(path: string, options?: GetOptionsInput | undefined | null): Promise<Buffer>;
   getWithMeta(path: string): Promise<GetResult>;
   getOpts(path: string, options: GetOptionsInput): Promise<Buffer>;
-  head(path: string): Promise<ObjectMeta>;
-  list(prefix?: string | undefined | null): Promise<Array<ObjectMeta>>;
+  head(path: string, options?: HeadOptionsInput | undefined | null): Promise<ObjectMeta>;
+  headOpts(path: string, options?: HeadOptionsInput | undefined | null): Promise<ObjectMeta>;
+  list(
+    prefix?: string | undefined | null,
+    options?: ListOptionsInput | undefined | null,
+  ): Promise<Array<ObjectMeta>>;
+  listOpts(
+    prefix?: string | undefined | null,
+    options?: ListOptionsInput | undefined | null,
+  ): Promise<Array<ObjectMeta>>;
   listWithDelimiter(prefix?: string | undefined | null): Promise<ListResult>;
   put(path: string, data: Buffer, options?: PutOptionsInput | undefined | null): Promise<PutResult>;
   putOpts(path: string, data: Buffer, options: PutOptionsInput): Promise<PutResult>;

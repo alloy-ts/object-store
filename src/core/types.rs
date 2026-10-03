@@ -87,3 +87,27 @@ pub struct RenameOptionsInput {
   pub target_mode_overwrite: Option<bool>,
   pub target_mode_create: Option<bool>,
 }
+
+#[napi(object)]
+pub struct HeadOptionsInput {
+  pub if_match: Option<String>,
+  pub if_none_match: Option<String>,
+  pub if_modified_since: Option<i64>,
+  pub if_unmodified_since: Option<i64>,
+  pub version: Option<String>,
+}
+
+#[napi(object)]
+pub struct DeleteOptionsInput {
+  pub dummy: Option<bool>,
+}
+
+#[napi(object)]
+pub struct ListOptionsInput {
+  pub offset: Option<String>,
+}
+
+#[napi(object)]
+pub struct PutMultipartOptionsInput {
+  pub dummy: Option<bool>,
+}
