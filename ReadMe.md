@@ -15,7 +15,6 @@ npm install @lib/object-store
 - **Uniform API**: Same code works across In-Memory, Local Filesystem, and Cloud URL endpoints.
 - **High Performance**: Native Rust implementation using `object_store` crate.
 - **Strongly Typed**: TypeScript interface definitions for all operations and options.
-- **Feature Flags**: Supports querying build-time enabled features via `getEnabledFeatures()`.
 
 ## Quick Start
 
