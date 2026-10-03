@@ -1,5 +1,5 @@
 use crate::core::store::ObjectStore;
-use crate::core::types::{convert_meta, ListResult, ObjectMeta};
+use crate::core::types::{convert_meta, ListOptionsInput, ListResult, ObjectMeta};
 use futures::StreamExt;
 use napi_derive::napi;
 use object_store::path::Path;
@@ -7,7 +7,11 @@ use object_store::path::Path;
 #[napi]
 impl ObjectStore {
   #[napi]
-  pub async fn list(&self, prefix: Option<String>) -> napi::Result<Vec<ObjectMeta>> {
+  pub async fn list(
+    &self,
+    prefix: Option<String>,
+    _options: Option<ListOptionsInput>,
+  ) -> napi::Result<Vec<ObjectMeta>> {
     let prefix_path = prefix.map(|p| Path::from(p.as_str()));
     let mut stream = self.inner.list(prefix_path.as_ref());
     let mut results = Vec::new();
@@ -16,6 +20,15 @@ impl ObjectStore {
       results.push(convert_meta(&meta));
     }
     Ok(results)
+  }
+
+  #[napi]
+  pub async fn list_opts(
+    &self,
+    prefix: Option<String>,
+    options: Option<ListOptionsInput>,
+  ) -> napi::Result<Vec<ObjectMeta>> {
+    self.list(prefix, options).await
   }
 
   #[napi]
