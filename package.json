@@ -40,7 +40,7 @@
     "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0-rc.1"
   },
   "napi": {
-    "binaryName": "my-addon",
+    "binaryName": "obj-store",
     "targets": [
       "x86_64-apple-darwin",
       "aarch64-apple-darwin",

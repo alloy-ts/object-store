@@ -1,5 +1,5 @@
-use crate::core::store::ObjectStore;
-use crate::core::types::{convert_meta, HeadOptionsInput, ObjectMeta};
+use crate::store::ObjectStore;
+use crate::types::{convert_meta, HeadOptionsInput, ObjectMeta};
 use napi_derive::napi;
 use object_store::path::Path;
 use object_store::ObjectStoreExt;

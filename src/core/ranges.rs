@@ -1,5 +1,5 @@
-use crate::core::store::ObjectStore;
-use crate::core::types::Range;
+use crate::store::ObjectStore;
+use crate::types::Range;
 use napi::bindgen_prelude::Buffer;
 use napi_derive::napi;
 use object_store::path::Path;
