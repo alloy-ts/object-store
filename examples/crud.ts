@@ -2,10 +2,12 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { ObjectStore, parseUrl } from "../index.js";
+import { ObjectStore, getFeatures, parseUrl } from "../index.js";
 
 async function main() {
   console.log("=== ObjectStore Core API CRUD Example ===");
+
+  console.log("\nActive Feature Flags:", getFeatures());
 
   // 1. Create in-memory store
   const store = ObjectStore.memory();
@@ -38,8 +40,7 @@ async function main() {
   // 5. GetOpts object (Partial Range / Range read & Conditional)
   console.log("\n4. GET with options (Range & Conditional)");
   const partial = await store.getOpts("docs/hello.txt", {
-    rangeStart: 0,
-    rangeEnd: 5,
+    range: { start: 0, end: 5 },
     ifModifiedSince: new Date(0).toISOString(),
     head: false,
   });
@@ -82,10 +83,10 @@ async function main() {
   const offsetList = await store.listWithOffset("docs", "docs/hello.txt");
   console.log("Listed with offset count:", offsetList.length);
 
-  // 10. Delete object
-  console.log("\n9. DELETE object");
+  // 10. Delete & DeleteOpts object
+  console.log("\n9. DELETE & deleteOpts object");
   await store.delete("docs/hello_renamed.txt");
-  await store.delete("docs/hello_renamed2.txt");
+  await store.deleteOpts("docs/hello_renamed2.txt", {});
   console.log("Deleted renamed files successfully.");
 
   // 11. Local File System & Parse URL Examples

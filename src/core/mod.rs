@@ -13,6 +13,7 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 
 pub use copy::CopyOptions;
+pub use delete::DeleteOptions;
 pub use get::{GetOptions, GetResult};
 pub use list::ListResult;
 pub use put::{PutOptions, PutResult};
@@ -91,6 +92,15 @@ impl ObjectStore {
   #[napi]
   pub async fn delete(&self, path: String) -> Result<()> {
     delete::delete(self, path).await
+  }
+
+  #[napi]
+  pub async fn delete_opts(
+    &self,
+    path: String,
+    options: Option<DeleteOptions>,
+  ) -> Result<()> {
+    delete::delete_opts(self, path, options).await
   }
 
   #[napi]
