@@ -43,7 +43,11 @@ impl ObjectStore {
   }
 
   #[napi]
-  pub async fn put(&self, path: String, payload: Uint8Array) -> Result<PutResult> {
+  pub async fn put(
+    &self,
+    path: String,
+    #[napi(ts_arg_type = "Uint8Array | Buffer")] payload: Uint8Array,
+  ) -> Result<PutResult> {
     put::put(self, path, payload).await
   }
 
@@ -51,7 +55,7 @@ impl ObjectStore {
   pub async fn put_opts(
     &self,
     path: String,
-    payload: Uint8Array,
+    #[napi(ts_arg_type = "Uint8Array | Buffer")] payload: Uint8Array,
     options: Option<PutOptions>,
   ) -> Result<PutResult> {
     put_opts::put_opts(self, path, payload, options).await

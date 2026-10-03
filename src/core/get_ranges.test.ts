@@ -14,6 +14,6 @@ test("getRanges method", async () => {
   ]);
 
   assert.equal(ranges.length, 2);
-  assert.equal(ranges[0].toString("utf8"), "ABC");
-  assert.equal(ranges[1].toString("utf8"), "KLM");
+  assert.equal(ranges[0]!.toString("utf8"), "ABC");
+  assert.equal(ranges[1]!.toString("utf8"), "KLM");
 });

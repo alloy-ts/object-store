@@ -39,6 +39,7 @@ pub struct GetOptions {
 
 #[napi(object)]
 pub struct PutOptions {
+  #[napi(ts_type = "'overwrite' | 'create' | 'update'")]
   pub mode: Option<String>,
   pub e_tag: Option<String>,
   pub version: Option<String>,
