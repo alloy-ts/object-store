@@ -35,6 +35,12 @@ pub struct ListResult {
   pub common_prefixes: Vec<String>,
 }
 
+#[napi(object)]
+pub struct RangeParam {
+  pub start: i64,
+  pub length: i64,
+}
+
 fn convert_meta(meta: &object_store::ObjectMeta) -> ObjectMeta {
   ObjectMeta {
     location: meta.location.to_string(),
@@ -149,6 +155,21 @@ impl ObjectStore {
       .await
       .map_err(|e| Error::from_reason(e.to_string()))?;
     Ok(Buffer::from(bytes.to_vec()))
+  }
+
+  #[napi]
+  pub async fn get_ranges(&self, path: String, ranges: Vec<RangeParam>) -> Result<Vec<Buffer>> {
+    let p = Path::from(path.as_str());
+    let rs: Vec<std::ops::Range<u64>> = ranges
+      .iter()
+      .map(|r| (r.start as u64)..(r.start as u64 + r.length as u64))
+      .collect();
+    let results = self
+      .inner
+      .get_ranges(&p, &rs)
+      .await
+      .map_err(|e| Error::from_reason(e.to_string()))?;
+    Ok(results.into_iter().map(|b| Buffer::from(b.to_vec())).collect())
   }
 
   #[napi]
