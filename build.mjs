@@ -2,8 +2,8 @@ import { createBuildCommand, NapiCli } from "@napi-rs/cli";
 import fs from "node:fs";
 import path from "node:path";
 
-const build = createBuildCommand(process.argv.slice(2));
-const options = build.getOptions();
+const buildCommand = createBuildCommand(process.argv.slice(2));
+const options = buildCommand.getOptions();
 
 const outputDirWasDefault = !options.outputDir || options.outputDir === ".";
 if (outputDirWasDefault) {
@@ -12,10 +12,12 @@ if (outputDirWasDefault) {
 
 const cli = new NapiCli();
 
-const { task } = await cli.build({
+const buildOptions = {
   ...options,
-  cargoOptions: build.cargoOptions,
-});
+  cargoOptions: buildCommand.cargoOptions,
+};
+
+const { task } = await cli.build(buildOptions);
 
 await task;
 

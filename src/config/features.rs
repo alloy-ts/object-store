@@ -21,3 +21,15 @@ pub fn get_features() -> FeatureFlags {
     http: cfg!(feature = "http"),
   }
 }
+
+#[napi]
+pub fn get_available_features() -> Vec<String> {
+  vec![
+    "fs".to_string(),
+    "tokio".to_string(),
+    "aws".to_string(),
+    "azure".to_string(),
+    "gcp".to_string(),
+    "http".to_string(),
+  ]
+}

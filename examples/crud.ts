@@ -2,12 +2,13 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { ObjectStore, getFeatures, parseUrl } from "../index.js";
+import { ObjectStore, getAvailableFeatures, getFeatures, parseUrl } from "../index.js";
 
 async function main() {
   console.log("=== ObjectStore Core API CRUD Example ===");
 
   console.log("\nActive Feature Flags:", getFeatures());
+  console.log("Supported Feature Flags:", getAvailableFeatures());
 
   // 1. Create in-memory store
   const store = ObjectStore.memory();
