@@ -72,22 +72,22 @@ export declare class ObjectStore {
   static createInMemory(): ObjectStore;
   static createLocal(rootPath: string): ObjectStore;
   static parseUrl(url: string, options?: Record<string, string> | undefined | null): ObjectStore;
-  copy(from: string, to: string): Promise<void>;
+  copy(from: string, to: string, options?: CopyOptionsInput | undefined | null): Promise<void>;
   copyOpts(from: string, to: string, options?: CopyOptionsInput | undefined | null): Promise<void>;
   delete(path: string): Promise<void>;
-  get(path: string): Promise<Buffer>;
+  get(path: string, options?: GetOptionsInput | undefined | null): Promise<Buffer>;
   getWithMeta(path: string): Promise<GetResult>;
   getOpts(path: string, options: GetOptionsInput): Promise<Buffer>;
   head(path: string): Promise<ObjectMeta>;
   list(prefix?: string | undefined | null): Promise<Array<ObjectMeta>>;
   listWithDelimiter(prefix?: string | undefined | null): Promise<ListResult>;
-  put(path: string, data: Buffer): Promise<PutResult>;
+  put(path: string, data: Buffer, options?: PutOptionsInput | undefined | null): Promise<PutResult>;
   putOpts(path: string, data: Buffer, options: PutOptionsInput): Promise<PutResult>;
   getRanges(path: string, ranges: Array<Range>): Promise<Array<Buffer>>;
-  rename(from: string, to: String): Promise<void>;
+  rename(from: string, to: string, options?: RenameOptionsInput | undefined | null): Promise<void>;
   renameOpts(
     from: string,
-    to: String,
+    to: string,
     options?: RenameOptionsInput | undefined | null,
   ): Promise<void>;
 }
