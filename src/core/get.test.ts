@@ -1,0 +1,21 @@
+import { expect, test } from "vite-plus/test";
+import { ObjectStore } from "../../index.js";
+
+test("Get - get, getWithMeta, getOpts", async () => {
+  const store = ObjectStore.createInMemory();
+  await store.put("hello.txt", Buffer.from("Hello World!"));
+
+  const data = await store.get("hello.txt");
+  expect(data.toString()).toBe("Hello World!");
+
+  const res = await store.getWithMeta("hello.txt");
+  expect(res.bytes.toString()).toBe("Hello World!");
+  expect(res.meta.location).toBe("hello.txt");
+  expect(res.meta.size).toBe(12);
+
+  const rangeData = await store.getOpts("hello.txt", {
+    rangeStart: 0,
+    rangeEnd: 5,
+  });
+  expect(rangeData.toString()).toBe("Hello");
+});

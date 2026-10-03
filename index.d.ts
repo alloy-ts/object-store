@@ -31,18 +31,38 @@ export interface Range {
   end: number
 }
 
+export interface GetOptionsInput {
+  ifMatch?: string
+  ifNoneMatch?: string
+  rangeStart?: number
+  rangeEnd?: number
+}
+
+export interface UpdateVersionInput {
+  eTag?: string
+  version?: string
+}
+
+export interface PutOptionsInput {
+  modeOverwrite?: boolean
+  modeCreate?: boolean
+  modeUpdate?: UpdateVersionInput
+}
+
 export declare class ObjectStore {
   static createInMemory(): ObjectStore
   static createLocal(rootPath: string): ObjectStore
   static parseUrl(url: string, options?: Record<string, string> | undefined | null): ObjectStore
-  put(path: string, data: Buffer): Promise<PutResult>
+  copy(from: string, to: string): Promise<void>
+  delete(path: string): Promise<void>
   get(path: string): Promise<Buffer>
   getWithMeta(path: string): Promise<GetResult>
+  getOpts(path: string, options: GetOptionsInput): Promise<Buffer>
   head(path: string): Promise<ObjectMeta>
-  delete(path: string): Promise<void>
   list(prefix?: string | undefined | null): Promise<Array<ObjectMeta>>
   listWithDelimiter(prefix?: string | undefined | null): Promise<ListResult>
-  copy(from: string, to: string): Promise<void>
-  rename(from: string, to: string): Promise<void>
+  put(path: string, data: Buffer): Promise<PutResult>
+  putOpts(path: string, data: Buffer, options: PutOptionsInput): Promise<PutResult>
   getRanges(path: string, ranges: Array<Range>): Promise<Array<Buffer>>
+  rename(from: string, to: string): Promise<void>
 }
