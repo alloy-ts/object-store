@@ -5,14 +5,14 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use object_store::ObjectStore as ObjectStoreTrait;
 
-use crate::core::copy::store_copy;
+use crate::core::copy::{store_copy, store_copy_opts};
 use crate::core::delete::store_delete;
 use crate::core::factory::{store_from_url, store_in_memory, store_local};
 use crate::core::get::{store_get, store_get_opts, store_get_range, store_get_ranges};
 use crate::core::head::store_head;
 use crate::core::list::{store_list, store_list_with_delimiter};
 use crate::core::put::{store_put, store_put_opts};
-use crate::core::rename::store_rename;
+use crate::core::rename::{store_rename, store_rename_opts};
 
 #[napi(object)]
 pub struct ObjectMeta {
@@ -51,11 +51,32 @@ pub struct RangeParam {
 pub struct GetOptionsParam {
   pub if_match: Option<String>,
   pub if_none_match: Option<String>,
+  pub if_modified_since: Option<String>,
+  pub if_unmodified_since: Option<String>,
   pub range: Option<RangeParam>,
+  pub version: Option<String>,
+  pub head: Option<bool>,
+}
+
+#[napi(object)]
+pub struct UpdateVersion {
+  pub e_tag: Option<String>,
+  pub version: Option<String>,
 }
 
 #[napi(object)]
 pub struct PutOptionsParam {
+  pub mode: Option<String>,
+  pub version: Option<UpdateVersion>,
+}
+
+#[napi(object)]
+pub struct CopyOptionsParam {
+  pub mode: Option<String>,
+}
+
+#[napi(object)]
+pub struct RenameOptionsParam {
   pub mode: Option<String>,
 }
 
@@ -153,8 +174,28 @@ impl ObjectStore {
   }
 
   #[napi]
+  pub async fn copy_opts(
+    &self,
+    from: String,
+    to: String,
+    options: CopyOptionsParam,
+  ) -> Result<()> {
+    store_copy_opts(self, from, to, options).await
+  }
+
+  #[napi]
   pub async fn rename(&self, from: String, to: String) -> Result<()> {
     store_rename(self, from, to).await
+  }
+
+  #[napi]
+  pub async fn rename_opts(
+    &self,
+    from: String,
+    to: String,
+    options: RenameOptionsParam,
+  ) -> Result<()> {
+    store_rename_opts(self, from, to, options).await
   }
 }
 

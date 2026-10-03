@@ -28,8 +28,17 @@ pub async fn store_put_opts(
   let payload = object_store::PutPayload::from(bytes.to_vec());
   let mut opts = object_store::PutOptions::default();
   if let Some(m) = options.mode {
-    if m == "create" {
-      opts.mode = object_store::PutMode::Create;
+    match m.as_str() {
+      "create" => opts.mode = object_store::PutMode::Create,
+      "update" => {
+        if let Some(v) = options.version {
+          opts.mode = object_store::PutMode::Update(object_store::UpdateVersion {
+            e_tag: v.e_tag,
+            version: v.version,
+          });
+        }
+      }
+      _ => opts.mode = object_store::PutMode::Overwrite,
     }
   }
   let res = store

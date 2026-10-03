@@ -35,6 +35,22 @@ pub async fn store_get_opts(
   if let Some(nm) = options.if_none_match {
     opts.if_none_match = Some(nm);
   }
+  if let Some(ms) = options.if_modified_since {
+    if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(&ms) {
+      opts.if_modified_since = Some(dt.with_timezone(&chrono::Utc));
+    }
+  }
+  if let Some(ums) = options.if_unmodified_since {
+    if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(&ums) {
+      opts.if_unmodified_since = Some(dt.with_timezone(&chrono::Utc));
+    }
+  }
+  if let Some(v) = options.version {
+    opts.version = Some(v);
+  }
+  if let Some(h) = options.head {
+    opts.head = h;
+  }
   if let Some(r) = options.range {
     opts.range = Some(object_store::GetRange::Bounded(
       (r.start as u64)..(r.start as u64 + r.length as u64),
