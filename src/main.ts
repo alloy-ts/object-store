@@ -1,9 +1,10 @@
-export { ObjectStore, ParsedUrl, parseUrl } from "../build/index.js";
+export { getFeatures, ObjectStore, ParsedUrl, parseUrl } from "../build/index.js";
 export type {
   AttributeValue,
   Attributes,
   BackoffConfig,
   CopyOptions,
+  FeatureFlags,
   GetOptions,
   GetResult,
   ListResult,
