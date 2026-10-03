@@ -2,7 +2,7 @@ import { expect, test } from "vite-plus/test";
 import { ObjectStore } from "../../index.js";
 import fs from "node:fs";
 import path from "node:path";
-import os = require("node:os");
+import os from "node:os";
 
 test("Store - Factory methods (in-memory, local, parseUrl)", async () => {
   const memStore = ObjectStore.createInMemory();

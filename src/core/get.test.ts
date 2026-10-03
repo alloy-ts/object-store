@@ -14,8 +14,7 @@ test("Get - get, getWithMeta, getOpts", async () => {
   expect(res.meta.size).toBe(12);
 
   const rangeData = await store.getOpts("hello.txt", {
-    rangeStart: 0,
-    rangeEnd: 5,
+    range: { start: 0, end: 5 },
   });
   expect(rangeData.toString()).toBe("Hello");
 });
