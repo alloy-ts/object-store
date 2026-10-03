@@ -3,6 +3,17 @@
 
 export declare const __napiBindingTarget: "native" | "wasm32-wasi" | "wasm32-wasip1";
 
+export interface EnabledFeatures {
+  fs: boolean;
+  tokio: boolean;
+  aws: boolean;
+  azure: boolean;
+  gcp: boolean;
+  http: boolean;
+}
+
+export declare function getEnabledFeatures(): EnabledFeatures;
+
 export interface ObjectMeta {
   location: string;
   lastModified: number;

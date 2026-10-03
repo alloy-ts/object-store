@@ -26,6 +26,7 @@
     - [`rename(from, to, options?)`](#renamefrom-to-options)
     - [`renameOpts(from, to, options?)`](#renameoptsfrom-to-options)
     - [`getRanges(path, ranges)`](#getrangespath-ranges)
+- [Feature Flags](#feature-flags)
 - [Types & Interfaces](#types--interfaces)
 
 ---
@@ -120,9 +121,34 @@ Performs vectored IO, fetching non-contiguous byte ranges in parallel.
 
 ---
 
+## Feature Flags
+
+#### `getEnabledFeatures(): EnabledFeatures`
+
+Returns the build-time feature flags enabled in the native binary.
+
+```typescript
+import { getEnabledFeatures } from "@lib/object-store";
+
+const features = getEnabledFeatures();
+console.log(features);
+// { fs: true, tokio: true, aws: false, azure: false, gcp: false, http: false }
+```
+
+---
+
 ## Types & Interfaces
 
 ```typescript
+export interface EnabledFeatures {
+  fs: boolean;
+  tokio: boolean;
+  aws: boolean;
+  azure: boolean;
+  gcp: boolean;
+  http: boolean;
+}
+
 export interface ObjectMeta {
   location: string;
   lastModified: number;

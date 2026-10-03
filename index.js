@@ -885,6 +885,6 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`);
 }
 
-const { ObjectStore } = nativeBinding;
-export { ObjectStore };
+const { ObjectStore, getEnabledFeatures } = nativeBinding;
+export { ObjectStore, getEnabledFeatures };
 export const __napiBindingTarget = __napiLoadedBindingTarget;

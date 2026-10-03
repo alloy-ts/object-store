@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { ObjectStore } from "../../index.js";
+import { ObjectStore, getEnabledFeatures } from "../../index.js";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
@@ -21,4 +21,11 @@ test("Store - Factory methods (in-memory, local, parseUrl)", async () => {
 
   const memoryUrlStore = ObjectStore.parseUrl("memory://");
   expect(memoryUrlStore).toBeDefined();
+});
+
+test("Store - getEnabledFeatures returns EnabledFeatures", () => {
+  const features = getEnabledFeatures();
+  expect(features).toBeDefined();
+  expect(typeof features.fs).toBe("boolean");
+  expect(typeof features.tokio).toBe("boolean");
 });
