@@ -1,3 +1,4 @@
+pub mod buffered;
 pub mod copy;
 pub mod delete;
 pub mod factory;
@@ -12,6 +13,7 @@ use std::collections::HashMap;
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 
+pub use buffered::{BufReader, BufWriter};
 pub use copy::CopyOptions;
 pub use delete::DeleteOptions;
 pub use get::{GetOptions, GetResult};

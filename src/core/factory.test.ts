@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 
 // @ts-ignore
-import { ObjectStore, getAvailableFeatures, getFeatures, parseUrl } from "../../index.js";
+import { ObjectStore, parseUrl } from "../../index.js";
 
 test("ObjectStore.memory factory", async () => {
   const store = ObjectStore.memory();
@@ -34,17 +34,4 @@ test("parseUrl standalone and ObjectStore.parseUrl", async () => {
   const res2 = ObjectStore.parseUrl("memory://");
   assert.ok(res2.store);
   assert.equal(res2.path, "");
-});
-
-test("getFeatures and getAvailableFeatures configuration functions", () => {
-  const features = getFeatures();
-  assert.equal(typeof features.fs, "boolean");
-  assert.equal(typeof features.tokio, "boolean");
-  assert.equal(features.fs, true);
-  assert.equal(features.tokio, true);
-
-  const available = getAvailableFeatures();
-  assert.ok(Array.isArray(available));
-  assert.ok(available.includes("fs"));
-  assert.ok(available.includes("aws"));
 });

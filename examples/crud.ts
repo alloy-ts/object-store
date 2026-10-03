@@ -2,13 +2,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { ObjectStore, getAvailableFeatures, getFeatures, parseUrl } from "../index.js";
+import { BufReader, BufWriter, ObjectStore, parseUrl } from "../index.js";
 
 async function main() {
   console.log("=== ObjectStore Core API CRUD Example ===");
-
-  console.log("\nActive Feature Flags:", getFeatures());
-  console.log("Supported Feature Flags:", getAvailableFeatures());
 
   // 1. Create in-memory store
   const store = ObjectStore.memory();
@@ -57,15 +54,28 @@ async function main() {
   console.log("Range 1 (0..5):", ranges[0]!.toString("utf8"));
   console.log("Range 2 (6..12):", ranges[1]!.toString("utf8"));
 
-  // 7. Copy & CopyOpts object
-  console.log("\n6. COPY & copyOpts object");
+  // 7. Buffered Writer & Reader (BufWriter & BufReader)
+  console.log("\n6. Buffered IO (BufWriter & BufReader)");
+  const writer = new BufWriter(store, "docs/buffered.txt");
+  await writer.write(Buffer.from("Part 1 - "));
+  await writer.write(Buffer.from("Part 2 - "));
+  await writer.write(Buffer.from("Finished."));
+  await writer.finish();
+
+  const reader = await BufReader.open(store, "docs/buffered.txt", 1024);
+  const part1 = await reader.read(8);
+  console.log("Buffered read part 1:", part1.toString("utf8"));
+  assert.equal(part1.toString("utf8"), "Part 1 -");
+
+  // 8. Copy & CopyOpts object
+  console.log("\n7. COPY & copyOpts object");
   await store.copy("docs/hello.txt", "docs/hello_copy.txt");
   await store.copyOpts("docs/hello.txt", "docs/hello_copy2.txt", { mode: "overwrite" });
   const copiedContent = await store.get("docs/hello_copy.txt");
   assert.equal(copiedContent.toString("utf8"), "Hello Object Store!");
 
-  // 8. Rename & RenameOpts object
-  console.log("\n7. RENAME & renameOpts object");
+  // 9. Rename & RenameOpts object
+  console.log("\n8. RENAME & renameOpts object");
   await store.rename("docs/hello_copy.txt", "docs/hello_renamed.txt");
   await store.renameOpts("docs/hello_copy2.txt", "docs/hello_renamed2.txt", {
     targetMode: "overwrite",
@@ -73,8 +83,8 @@ async function main() {
   const renamedContent = await store.get("docs/hello_renamed.txt");
   assert.equal(renamedContent.toString("utf8"), "Hello Object Store!");
 
-  // 9. List objects & ListWithOffset
-  console.log("\n8. LIST objects & listWithOffset");
+  // 10. List objects & ListWithOffset
+  console.log("\n9. LIST objects & listWithOffset");
   const list = await store.list("docs");
   console.log("Listed objects under 'docs':");
   for (const item of list) {
@@ -84,14 +94,14 @@ async function main() {
   const offsetList = await store.listWithOffset("docs", "docs/hello.txt");
   console.log("Listed with offset count:", offsetList.length);
 
-  // 10. Delete & DeleteOpts object
-  console.log("\n9. DELETE & deleteOpts object");
+  // 11. Delete & DeleteOpts object
+  console.log("\n10. DELETE & deleteOpts object");
   await store.delete("docs/hello_renamed.txt");
   await store.deleteOpts("docs/hello_renamed2.txt", {});
   console.log("Deleted renamed files successfully.");
 
-  // 11. Local File System & Parse URL Examples
-  console.log("\n10. Local Store & parseUrl");
+  // 12. Local File System & Parse URL Examples
+  console.log("\n11. Local Store & parseUrl");
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "crud-example-"));
   try {
     const localStore = ObjectStore.local(tmpDir);
