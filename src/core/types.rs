@@ -24,28 +24,6 @@ impl From<ObjObjectMeta> for ObjectMeta {
 }
 
 #[napi(object)]
-pub struct PutResult {
-  pub e_tag: Option<String>,
-  pub version: Option<String>,
-}
-
-#[napi(object)]
-pub struct GetOptions {
-  pub range_start: Option<i64>,
-  pub range_end: Option<i64>,
-  pub if_match: Option<String>,
-  pub if_none_match: Option<String>,
-}
-
-#[napi(object)]
-pub struct PutOptions {
-  #[napi(ts_type = "'overwrite' | 'create' | 'update'")]
-  pub mode: Option<String>,
-  pub e_tag: Option<String>,
-  pub version: Option<String>,
-}
-
-#[napi(object)]
 pub struct RangeInput {
   pub start: i64,
   pub end: i64,

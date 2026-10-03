@@ -11,6 +11,8 @@ test("getOpts method with range and preconditions", async () => {
   const slice = await store.getOpts("data.txt", {
     rangeStart: 2,
     rangeEnd: 6,
+    ifModifiedSince: new Date(0).toISOString(),
+    head: false,
   });
   assert.equal(slice.toString("utf8"), "2345");
 });

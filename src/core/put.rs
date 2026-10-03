@@ -2,7 +2,8 @@ use napi::bindgen_prelude::*;
 use object_store::path::Path;
 use object_store::{ObjectStoreExt, PutPayload};
 
-use super::types::{ObjectStore, PutResult};
+use super::put_opts::PutResult;
+use super::types::ObjectStore;
 
 pub async fn put(store: &ObjectStore, path: String, payload: Uint8Array) -> Result<PutResult> {
   let location = Path::from(path.as_str());

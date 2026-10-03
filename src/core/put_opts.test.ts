@@ -4,10 +4,11 @@ import test from "node:test";
 // @ts-ignore
 import { ObjectStore } from "../../index.js";
 
-test("putOpts method", async () => {
+test("putOpts method with tags and mode", async () => {
   const store = ObjectStore.memory();
   const res = await store.putOpts("opts.txt", Buffer.from("opts content"), {
     mode: "overwrite",
+    tags: { env: "test", project: "napi" },
   });
   assert.ok(res);
 

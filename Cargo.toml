@@ -8,6 +8,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 bytes = "1"
+chrono = "0.4"
 futures = "0.3"
 napi = { version = "3", features = ["async", "tokio_rt"] }
 napi-derive = "3"

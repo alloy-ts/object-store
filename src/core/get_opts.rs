@@ -1,9 +1,22 @@
 use std::ops::Range;
+use chrono::{DateTime, Utc};
 use napi::bindgen_prelude::*;
+use napi_derive::napi;
 use object_store::path::Path;
 use object_store::{GetOptions as ObjGetOptions, GetRange};
 
-use super::types::{GetOptions, ObjectStore};
+use super::types::ObjectStore;
+
+#[napi(object)]
+pub struct GetOptions {
+  pub range_start: Option<i64>,
+  pub range_end: Option<i64>,
+  pub if_match: Option<String>,
+  pub if_none_match: Option<String>,
+  pub if_modified_since: Option<String>,
+  pub if_unmodified_since: Option<String>,
+  pub head: Option<bool>,
+}
 
 pub async fn get_opts(
   store: &ObjectStore,
@@ -36,6 +49,19 @@ pub async fn get_opts(
     }
     if let Some(if_none_match) = opts.if_none_match {
       get_opts.if_none_match = Some(if_none_match);
+    }
+    if let Some(if_modified_since) = opts.if_modified_since {
+      if let Ok(dt) = DateTime::parse_from_rfc3339(&if_modified_since) {
+        get_opts.if_modified_since = Some(dt.with_timezone(&Utc));
+      }
+    }
+    if let Some(if_unmodified_since) = opts.if_unmodified_since {
+      if let Ok(dt) = DateTime::parse_from_rfc3339(&if_unmodified_since) {
+        get_opts.if_unmodified_since = Some(dt.with_timezone(&Utc));
+      }
+    }
+    if let Some(head) = opts.head {
+      get_opts.head = head;
     }
   }
 

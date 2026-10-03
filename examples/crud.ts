@@ -10,9 +10,12 @@ async function main() {
   // 1. Create in-memory store
   const store = ObjectStore.memory();
 
-  // 2. Put object (Create)
-  console.log("\n1. PUT object");
-  const putResult = await store.put("docs/hello.txt", Buffer.from("Hello Object Store!"));
+  // 2. Put object with options and tags (Create)
+  console.log("\n1. PUT object with options & tags");
+  const putResult = await store.putOpts("docs/hello.txt", Buffer.from("Hello Object Store!"), {
+    mode: "overwrite",
+    tags: { category: "documentation", author: "jules" },
+  });
   console.log("Put result:", putResult);
 
   // 3. Head object (Read Metadata)
@@ -22,29 +25,29 @@ async function main() {
   assert.equal(meta.location, "docs/hello.txt");
   assert.equal(meta.size, 19);
 
-  // 4. Get object (Read Content)
-  console.log("\n3. GET object");
+  // 4. Get object and GetResult (Read Content)
+  console.log("\n3. GET object & getResult");
   const content = await store.get("docs/hello.txt");
   console.log("Fetched content:", content.toString("utf8"));
   assert.equal(content.toString("utf8"), "Hello Object Store!");
 
-  // 5. PutOpts object (Conditional / Opts)
-  console.log("\n4. PUT with options");
-  await store.putOpts("docs/overwrite.txt", Buffer.from("Overwritten content"), {
-    mode: "overwrite",
-  });
+  const fullResult = await store.getResult("docs/hello.txt");
+  console.log("Full GetResult meta:", fullResult.meta.location, "size:", fullResult.meta.size);
+  assert.equal(fullResult.bytes.toString("utf8"), "Hello Object Store!");
 
-  // 6. GetOpts object (Partial Range / Range read)
-  console.log("\n5. GET with options (Range)");
+  // 5. GetOpts object (Partial Range / Range read & Conditional)
+  console.log("\n4. GET with options (Range & Conditional)");
   const partial = await store.getOpts("docs/hello.txt", {
     rangeStart: 0,
     rangeEnd: 5,
+    ifModifiedSince: new Date(0).toISOString(),
+    head: false,
   });
   console.log("Range GET (0..5):", partial.toString("utf8"));
   assert.equal(partial.toString("utf8"), "Hello");
 
-  // 7. GetRanges (Vectored Read)
-  console.log("\n6. GET ranges (Vectored Read)");
+  // 6. GetRanges (Vectored Read)
+  console.log("\n5. GET ranges (Vectored Read)");
   const ranges = await store.getRanges("docs/hello.txt", [
     { start: 0, end: 5 },
     { start: 6, end: 12 },
@@ -52,33 +55,41 @@ async function main() {
   console.log("Range 1 (0..5):", ranges[0]!.toString("utf8"));
   console.log("Range 2 (6..12):", ranges[1]!.toString("utf8"));
 
-  // 8. Copy object
-  console.log("\n7. COPY object");
+  // 7. Copy & CopyOpts object
+  console.log("\n6. COPY & copyOpts object");
   await store.copy("docs/hello.txt", "docs/hello_copy.txt");
+  await store.copyOpts("docs/hello.txt", "docs/hello_copy2.txt", { mode: "overwrite" });
   const copiedContent = await store.get("docs/hello_copy.txt");
   assert.equal(copiedContent.toString("utf8"), "Hello Object Store!");
 
-  // 9. Rename / Move object
-  console.log("\n8. RENAME object");
+  // 8. Rename & RenameOpts object
+  console.log("\n7. RENAME & renameOpts object");
   await store.rename("docs/hello_copy.txt", "docs/hello_renamed.txt");
+  await store.renameOpts("docs/hello_copy2.txt", "docs/hello_renamed2.txt", {
+    targetMode: "overwrite",
+  });
   const renamedContent = await store.get("docs/hello_renamed.txt");
   assert.equal(renamedContent.toString("utf8"), "Hello Object Store!");
 
-  // 10. List objects
-  console.log("\n9. LIST objects");
+  // 9. List objects & ListWithOffset
+  console.log("\n8. LIST objects & listWithOffset");
   const list = await store.list("docs");
   console.log("Listed objects under 'docs':");
   for (const item of list) {
     console.log(` - ${item.location} (${item.size} bytes, modified: ${item.lastModified})`);
   }
 
-  // 11. Delete object
-  console.log("\n10. DELETE object");
-  await store.delete("docs/hello_renamed.txt");
-  console.log("Deleted docs/hello_renamed.txt successfully.");
+  const offsetList = await store.listWithOffset("docs", "docs/hello.txt");
+  console.log("Listed with offset count:", offsetList.length);
 
-  // 12. Local File System & Parse URL Examples
-  console.log("\n11. Local Store & parseUrl");
+  // 10. Delete object
+  console.log("\n9. DELETE object");
+  await store.delete("docs/hello_renamed.txt");
+  await store.delete("docs/hello_renamed2.txt");
+  console.log("Deleted renamed files successfully.");
+
+  // 11. Local File System & Parse URL Examples
+  console.log("\n10. Local Store & parseUrl");
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "crud-example-"));
   try {
     const localStore = ObjectStore.local(tmpDir);

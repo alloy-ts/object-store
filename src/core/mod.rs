@@ -15,6 +15,12 @@ use std::collections::HashMap;
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 
+pub use copy::CopyOptions;
+pub use get::GetResult;
+pub use get_opts::GetOptions;
+pub use list::ListResult;
+pub use put_opts::{PutOptions, PutResult};
+pub use rename::RenameOptions;
 pub use types::*;
 
 #[napi]
@@ -67,6 +73,11 @@ impl ObjectStore {
   }
 
   #[napi]
+  pub async fn get_result(&self, path: String) -> Result<GetResult> {
+    get::get_result(self, path).await
+  }
+
+  #[napi]
   pub async fn get_opts(&self, path: String, options: Option<GetOptions>) -> Result<Buffer> {
     get_opts::get_opts(self, path, options).await
   }
@@ -92,13 +103,42 @@ impl ObjectStore {
   }
 
   #[napi]
+  pub async fn list_with_offset(
+    &self,
+    prefix: Option<String>,
+    offset: String,
+  ) -> Result<Vec<ObjectMeta>> {
+    list::list_with_offset(self, prefix, offset).await
+  }
+
+  #[napi]
   pub async fn copy(&self, from: String, to: String) -> Result<()> {
     copy::copy(self, from, to).await
   }
 
   #[napi]
+  pub async fn copy_opts(
+    &self,
+    from: String,
+    to: String,
+    options: Option<CopyOptions>,
+  ) -> Result<()> {
+    copy::copy_opts(self, from, to, options).await
+  }
+
+  #[napi]
   pub async fn rename(&self, from: String, to: String) -> Result<()> {
     rename::rename(self, from, to).await
+  }
+
+  #[napi]
+  pub async fn rename_opts(
+    &self,
+    from: String,
+    to: String,
+    options: Option<RenameOptions>,
+  ) -> Result<()> {
+    rename::rename_opts(self, from, to, options).await
   }
 }
 

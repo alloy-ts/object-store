@@ -1,8 +1,27 @@
+use std::collections::HashMap;
 use napi::bindgen_prelude::*;
+use napi_derive::napi;
 use object_store::path::Path;
-use object_store::{PutMode, PutOptions as ObjPutOptions, PutPayload, UpdateVersion};
+use object_store::{
+  PutMode, PutOptions as ObjPutOptions, PutPayload, TagSet as ObjTagSet, UpdateVersion,
+};
 
-use super::types::{ObjectStore, PutOptions, PutResult};
+use super::types::ObjectStore;
+
+#[napi(object)]
+pub struct PutResult {
+  pub e_tag: Option<String>,
+  pub version: Option<String>,
+}
+
+#[napi(object)]
+pub struct PutOptions {
+  #[napi(ts_type = "'overwrite' | 'create' | 'update'")]
+  pub mode: Option<String>,
+  pub e_tag: Option<String>,
+  pub version: Option<String>,
+  pub tags: Option<HashMap<String, String>>,
+}
 
 pub async fn put_opts(
   store: &ObjectStore,
@@ -26,7 +45,18 @@ pub async fn put_opts(
     PutMode::Overwrite
   };
 
-  let put_options = ObjPutOptions::from(put_mode);
+  let mut put_options = ObjPutOptions::from(put_mode);
+
+  if let Some(opts) = options {
+    if let Some(tags) = opts.tags {
+      let mut tag_set = ObjTagSet::default();
+      for (k, v) in tags {
+        tag_set.push(&k, &v);
+      }
+      put_options.tags = tag_set;
+    }
+  }
+
   let res = store
     .inner
     .put_opts(&location, put_payload, put_options)
