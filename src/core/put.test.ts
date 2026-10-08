@@ -1,7 +1,15 @@
 import { expect, test } from "vite-plus/test";
-import { ObjectStore, InMemory, PutPayload, PutPayloadMut } from "../../index.js";
+import {
+  ObjectStore,
+  InMemory,
+  MultipartStore,
+  PutPayload,
+  PutPayloadMut,
+} from "../../dist/index.js";
 
-test("Put - put and putOpts", async () => {
+const toStr = (b: Buffer) => b.toString();
+
+test("Put - put and putOpts with mode options", async () => {
   const store = ObjectStore.createInMemory();
 
   const res1 = await store.put("file.txt", Buffer.from("content"));
@@ -17,6 +25,18 @@ test("Put - put and putOpts", async () => {
 
   const data2 = await store.get("file.txt");
   expect(data2.toString()).toBe("new content");
+});
+
+test("Put - putOpts with tags and attributes", async () => {
+  const store = ObjectStore.createInMemory();
+  const res = await store.putOpts("tagged.txt", Buffer.from("data with tags"), {
+    tags: { env: "test", team: "core" },
+    attributes: { "content-type": "text/plain" },
+  });
+  expect(res).toBeDefined();
+
+  const data = await store.get("tagged.txt");
+  expect(data.toString()).toBe("data with tags");
 });
 
 test("PutPayload - constructor creates empty payload", () => {
@@ -60,8 +80,8 @@ test("PutPayload - put to ObjectStore and InMemory", async () => {
 
   const memStore = new InMemory();
   const payload2 = PutPayload.fromBytes(Buffer.from("mem-content"));
-  await memStore.put("mem.txt", payload2);
-  const memData = await memStore.get("mem.txt");
+  await memStore.asObjectStore().put("mem.txt", payload2);
+  const memData = await memStore.asObjectStore().get("mem.txt");
   expect(memData.toString()).toBe("mem-content");
 });
 
@@ -93,12 +113,40 @@ test("PutPayloadMut - push and extendFromSlice append data and freeze into PutPa
   expect(builder.isEmpty()).toBe(true);
 });
 
-test("PutPayloadMut - put unfrozen PutPayloadMut directly to store", async () => {
+test("PutPayloadMut - extendFromSlice with a small block size preserves content", () => {
+  const builder = PutPayloadMut.withBlockSize(5);
+  builder.extendFromSlice(Buffer.from("abcdefghijkl"));
+  expect(builder.contentLength()).toBe(12);
+
+  const p = builder.freeze();
+  expect(toStr(p.concat())).toBe("abcdefghijkl");
+});
+
+test("PutPayloadMut - freeze PutPayloadMut and put directly to store", async () => {
   const store = ObjectStore.createInMemory();
   const builder = new PutPayloadMut();
   builder.extendFromSlice(Buffer.from("mutable-put-data"));
 
-  await store.put("mut.txt", builder);
+  await store.put("mut.txt", builder.freeze());
   const data = await store.get("mut.txt");
   expect(data.toString()).toBe("mutable-put-data");
+});
+
+test("PutPayload - usable as a multipart part", async () => {
+  const store = new InMemory();
+  const mp = MultipartStore.fromInMemory(store);
+
+  const id = await mp.createMultipart("big.bin");
+  const p0 = await mp.putPart("big.bin", id, 0, PutPayload.fromBytes(Buffer.from("hello ")));
+  const p1 = await mp.putPart("big.bin", id, 1, PutPayload.fromString("world"));
+  expect(typeof p0.contentId).toBe("string");
+
+  await mp.completeMultipart("big.bin", id, [p0, p1]);
+  expect(toStr(await store.asObjectStore().get("big.bin"))).toBe("hello world");
+});
+
+test("PutPayload - non-payload/non-buffer value is rejected by put", () => {
+  const store = ObjectStore.createInMemory();
+  // @ts-expect-error - 12345 is neither a Buffer nor a PutPayload
+  expect(() => store.put("x.bin", 12345)).toThrow(/none of these types/);
 });

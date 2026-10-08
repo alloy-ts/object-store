@@ -100,7 +100,7 @@ impl ClientOptions {
   /// Permit plain `http://` requests. Only `https` is allowed by default.
   #[napi]
   pub fn with_allow_http(&self, allow_http: bool) {
-    self.update(|o| o.with_allow_http(allow_http));
+    self.update(|o| o.with_allow_http(allow_http).with_config(ClientConfigKey::AllowHttp, allow_http.to_string()));
   }
 
   /// Set the `User-Agent` sent with every request.
@@ -108,7 +108,7 @@ impl ClientOptions {
   pub fn with_user_agent(&self, agent: String) -> napi::Result<()> {
     let value = HeaderValue::from_str(&agent)
       .map_err(|e| napi::Error::from_reason(format!("invalid User-Agent {agent:?}: {e}")))?;
-    self.update(|o| o.with_user_agent(value));
+    self.update(|o| o.with_user_agent(value).with_config(ClientConfigKey::UserAgent, agent));
     Ok(())
   }
 
@@ -147,7 +147,8 @@ impl ClientOptions {
   #[napi]
   pub fn with_timeout(&self, seconds: f64) -> napi::Result<()> {
     let duration = non_negative_duration(seconds, "timeout")?;
-    self.update(|o| o.with_timeout(duration));
+    let formatted = format!("{seconds}s");
+    self.update(|o| o.with_timeout(duration).with_config(ClientConfigKey::Timeout, formatted));
     Ok(())
   }
 

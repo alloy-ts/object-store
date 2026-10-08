@@ -270,7 +270,7 @@ pub fn build_attributes(input: Option<&HashMap<String, String>>) -> napi::Result
 pub fn convert_attributes(attributes: &Attributes) -> HashMap<String, String> {
   attributes
     .iter()
-    .map(|(key, value)| (attribute_key(key), value.to_string()))
+    .map(|(key, value)| (attribute_key(key), value.as_ref().to_string()))
     .collect()
 }
 

@@ -1,7 +1,6 @@
+use crate::core::put::{to_put_payload, PutPayloadInput};
 use crate::memory::InMemory;
-use crate::payload::{to_put_payload, PutPayload};
 use crate::types::{build_put_multipart_options, PutMultipartOptionsInput, PutResult};
-use napi::bindgen_prelude::{Buffer, Either};
 use napi_derive::napi;
 use object_store::multipart::{MultipartStore as MultipartStoreTrait, PartId as RsPartId};
 use object_store::path::Path;
@@ -78,7 +77,7 @@ impl MultipartStore {
     path: String,
     id: String,
     part_idx: u32,
-    data: Either<Buffer, &PutPayload>,
+    data: PutPayloadInput<'_>,
   ) -> napi::Result<PartId> {
     let location = Path::from(path.as_str());
     let payload = to_put_payload(data);

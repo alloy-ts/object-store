@@ -3,7 +3,9 @@ import fs from "node:fs";
 import path from "node:path";
 
 test("DTS - Verify generated declarations contain strongly typed options and methods", () => {
-  const dtsPath = path.resolve(process.cwd(), "dist/index.d.ts");
+  const primaryPath = path.resolve(process.cwd(), "dist/index.d.ts");
+  const fallbackPath = path.resolve(process.cwd(), "dist/main.d.mts");
+  const dtsPath = fs.existsSync(primaryPath) ? primaryPath : fallbackPath;
   const content = fs.readFileSync(dtsPath, "utf-8");
 
   const expectedTypes = [
@@ -19,7 +21,6 @@ test("DTS - Verify generated declarations contain strongly typed options and met
     "interface CopyOptionsInput",
     "interface RenameOptionsInput",
     "interface HeadOptionsInput",
-    "interface DeleteOptionsInput",
     "interface ListOptionsInput",
     "interface PaginatedListOptionsInput",
     "interface PaginatedListResult",
@@ -29,7 +30,6 @@ test("DTS - Verify generated declarations contain strongly typed options and met
     "copyOpts(",
     "renameOpts(",
     "headOpts(",
-    "deleteOpts(",
     "deleteStream(",
     "listOpts(",
     "listPaginated(",

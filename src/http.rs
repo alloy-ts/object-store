@@ -1,4 +1,4 @@
-use crate::fetch::fetch_connector;
+use crate::core::get::fetch_connector;
 use crate::store::ObjectStore as NapiObjectStore;
 use napi::bindgen_prelude::Unknown;
 use napi_derive::napi;
@@ -79,7 +79,7 @@ impl HttpStore {
   }
 
   fn build(url: String, fetch: Unknown, options: Option<HttpOptions>) -> napi::Result<Self> {
-    let connector = fetch_connector(fetch).map_err(|e| napi::Error::from_reason(e.to_string()))?;
+    let connector = fetch_connector(fetch)?;
 
     let mut builder = HttpBuilder::new()
       .with_url(url)
