@@ -2,7 +2,6 @@ pub mod buffered;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod chunked;
 pub mod filesystem;
-pub mod fetch;
 pub mod http;
 pub mod limit;
 pub mod memory;
@@ -18,7 +17,6 @@ pub use buffered::{BufReader, BufWriter, BufWriterOptions, SeekFromInput};
 #[cfg(not(target_arch = "wasm32"))]
 pub use chunked::ChunkedStore;
 pub use filesystem::LocalFileSystem;
-pub use fetch::{FetchRequest, FetchResponse};
 pub use http::HttpStore;
 pub use limit::LimitStore;
 pub use memory::InMemory;
