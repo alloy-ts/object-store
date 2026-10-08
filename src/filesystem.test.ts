@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { LocalFileSystem } from "../index.js";
+import { LocalFileSystem } from "../dist/index.js";
 import { mkdtempSync, realpathSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";

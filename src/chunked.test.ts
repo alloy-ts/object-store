@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { ObjectStore, ChunkedStore } from "../index.js";
+import { ObjectStore, ChunkedStore } from "../dist/index.js";
 
 // Deterministic payload so we can assert exact byte reassembly across chunk
 // boundaries (byte i = i % 251 avoids a uniform stream).

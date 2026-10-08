@@ -1,6 +1,9 @@
 use crate::payload::{to_put_payload, PutPayload};
 use crate::store::ObjectStore;
-use crate::types::{build_put_options, PutOptionsInput, PutResult};
+use crate::types::{
+  build_put_multipart_options, build_put_options, PutMultipartOptionsInput, PutOptionsInput,
+  PutResult,
+};
 use napi::bindgen_prelude::{Buffer, Either};
 use napi_derive::napi;
 use object_store::MultipartUpload as MultipartUploadTrait;
@@ -15,7 +18,8 @@ impl ObjectStore {
   ///
   /// Wraps `ObjectStoreExt::put`. The payload is buffered in memory; use
   /// `putMultipart` for streaming uploads. Passing `options` routes through
-  /// `ObjectStore::put_opts` (Overwrite/Create/Update modes).
+  /// `ObjectStore::put_opts` (Overwrite/Create/Update modes, tags and
+  /// attributes).
   #[napi]
   pub async fn put(
     &self,
@@ -27,7 +31,7 @@ impl ObjectStore {
     let payload = to_put_payload(data);
 
     if let Some(opts) = options {
-      let put_options = build_put_options(&opts);
+      let put_options = build_put_options(&opts)?;
       let res = self
         .inner
         .put_opts(&location, payload, put_options)
@@ -52,9 +56,9 @@ impl ObjectStore {
 
   /// Save the provided bytes to `path` with the given options.
   ///
-  /// Wraps `ObjectStore::put_opts` (Overwrite/Create/Update modes). The
-  /// operation is atomic. For no-option writes see `put`; for streaming
-  /// uploads see `putMultipart`.
+  /// Wraps `ObjectStore::put_opts` (Overwrite/Create/Update modes, tags and
+  /// attributes). The operation is atomic. For no-option writes see `put`; for
+  /// streaming uploads see `putMultipart`.
   #[napi]
   pub async fn put_opts(
     &self,
@@ -67,13 +71,30 @@ impl ObjectStore {
 
   /// Start a multipart upload, returning a handle to feed parts into.
   ///
-  /// Wraps `ObjectStoreExt::put_multipart`. Prefer `put` for small payloads.
+  /// Wraps `ObjectStore::put_multipart_opts`, so `options` carries the same
+  /// tags/attributes as [`put`](#method.put). Prefer `put` for small payloads.
   #[napi]
-  pub async fn put_multipart(&self, path: String) -> napi::Result<MultipartUpload> {
+  pub async fn put_multipart(
+    &self,
+    path: String,
+    options: Option<PutMultipartOptionsInput>,
+  ) -> napi::Result<MultipartUpload> {
+    self.put_multipart_opts(path, options).await
+  }
+
+  /// Start a multipart upload with the given options, returning a handle to feed
+  /// parts into (`ObjectStore::put_multipart_opts`).
+  #[napi]
+  pub async fn put_multipart_opts(
+    &self,
+    path: String,
+    options: Option<PutMultipartOptionsInput>,
+  ) -> napi::Result<MultipartUpload> {
     let location = Path::from(path.as_str());
+    let opts = build_put_multipart_options(options.as_ref())?;
     let upload = self
       .inner
-      .put_multipart(&location)
+      .put_multipart_opts(&location, opts)
       .await
       .map_err(|e: object_store::Error| napi::Error::from_reason(e.to_string()))?;
     Ok(MultipartUpload {
