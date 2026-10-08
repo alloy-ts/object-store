@@ -1,4 +1,4 @@
-use crate::core::get::fetch_connector;
+use crate::fetch::fetch_connector;
 use crate::store::ObjectStore as NapiObjectStore;
 use napi::bindgen_prelude::Unknown;
 use napi_derive::napi;

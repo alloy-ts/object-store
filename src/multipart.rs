@@ -1,11 +1,11 @@
 use crate::memory::InMemory;
-use crate::types::{PutMultipartOptionsInput, PutResult};
-use bytes::Bytes;
-use napi::bindgen_prelude::Buffer;
+use crate::payload::{to_put_payload, PutPayload};
+use crate::types::{build_put_multipart_options, PutMultipartOptionsInput, PutResult};
+use napi::bindgen_prelude::{Buffer, Either};
 use napi_derive::napi;
 use object_store::multipart::{MultipartStore as MultipartStoreTrait, PartId as RsPartId};
 use object_store::path::Path;
-use object_store::{MultipartId, PutMultipartOptions, PutPayload};
+use object_store::MultipartId;
 use std::sync::Arc;
 
 /// A part of a file that has been successfully uploaded in a multipart upload process.
@@ -51,16 +51,18 @@ impl MultipartStore {
   }
 
   /// Creates a new multipart upload with the given options, returning the `MultipartId`.
+  ///
+  /// Wraps `MultipartStore::create_multipart_opts`, so `tags` and `attributes`
+  /// are honoured by backends that support them (in this build: `InMemory`) and
+  /// rejected with `NotSupported` by those that do not.
   #[napi]
   pub async fn create_multipart_opts(
     &self,
     path: String,
-    _options: Option<PutMultipartOptionsInput>,
+    options: Option<PutMultipartOptionsInput>,
   ) -> napi::Result<String> {
     let location = Path::from(path.as_str());
-    // Only the default options are forwarded; `InMemory`'s default impl rejects
-    // non-default attributes/tags, so this keeps parity with the underlying store.
-    let opts = PutMultipartOptions::default();
+    let opts = build_put_multipart_options(options.as_ref())?;
     let id: MultipartId = self
       .inner
       .create_multipart_opts(&location, opts)
@@ -76,10 +78,10 @@ impl MultipartStore {
     path: String,
     id: String,
     part_idx: u32,
-    data: Buffer,
+    data: Either<Buffer, &PutPayload>,
   ) -> napi::Result<PartId> {
     let location = Path::from(path.as_str());
-    let payload = PutPayload::from(Bytes::from(data.to_vec()));
+    let payload = to_put_payload(data);
     let part: RsPartId = self
       .inner
       .put_part(&location, &id, part_idx as usize, payload)

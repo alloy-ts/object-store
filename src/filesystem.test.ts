@@ -1,6 +1,6 @@
 import { expect, test } from "vite-plus/test";
-import { LocalFileSystem } from "../index.js";
-import { mkdtempSync } from "node:fs";
+import { LocalFileSystem } from "../dist/index.js";
+import { mkdtempSync, realpathSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -14,8 +14,10 @@ test("LocalFileSystem - prefix + put/get via ObjectStore", async () => {
   expect(data.toString()).toBe("local");
 
   // path_to_filesystem resolves to an absolute path under the prefix.
+  // Compare against the canonical path: on macOS tmpdir() (/var/...) is a
+  // symlink to /private/var/..., which `path_to_filesystem` resolves.
   const abs = fs.pathToFilesystem("a/b.txt");
-  expect(abs.startsWith(dir)).toBe(true);
+  expect(abs.startsWith(realpathSync(dir))).toBe(true);
 });
 
 test("LocalFileSystem - builders return a new store", () => {

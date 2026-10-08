@@ -11,26 +11,42 @@
   - [Operations](#operations)
     - [`put(path, data, options?)`](#putpath-data-options)
     - [`putOpts(path, data, options)`](#putoptspath-data-options)
+    - [`putMultipart(path, options?)`](#putmultipartpath-options)
+    - [`putMultipartOpts(path, options?)`](#putmultipartoptspath-options)
     - [`get(path, options?)`](#getpath-options)
     - [`getOpts(path, options)`](#getoptspath-options)
-    - [`getWithMeta(path)`](#getwithmetapath)
+    - [`getWithMeta(path, options?)`](#getwithmetapath-options)
+    - [`getRange(path, range)`](#getrangepath-range)
+    - [`getRanges(path, ranges)`](#getrangespath-ranges)
     - [`head(path, options?)`](#headpath-options)
     - [`headOpts(path, options?)`](#headoptspath-options)
-    - [`delete(path, options?)`](#deletepath-options)
-    - [`deleteOpts(path, options?)`](#deleteoptspath-options)
+    - [`delete(path)`](#deletepath)
+    - [`deleteStream(locations)`](#deletestreamlocations)
     - [`list(prefix?, options?)`](#listprefix-options)
     - [`listOpts(prefix?, options?)`](#listoptsprefix-options)
     - [`listWithDelimiter(prefix?)`](#listwithdelimiterprefix)
+    - [`listWithOffset(prefix, offset)`](#listwithoffsetprefix-offset)
     - [`copy(from, to, options?)`](#copyfrom-to-options)
     - [`copyOpts(from, to, options?)`](#copyoptsfrom-to-options)
+    - [`copyIfNotExists(from, to)`](#copyifnotexistsfrom-to)
     - [`rename(from, to, options?)`](#renamefrom-to-options)
     - [`renameOpts(from, to, options?)`](#renameoptsfrom-to-options)
-    - [`getRanges(path, ranges)`](#getrangespath-ranges)
+    - [`renameIfNotExists(from, to)`](#renameifnotexistsfrom-to)
+- [Store Classes](#store-classes)
 - [Types & Interfaces](#types--interfaces)
 
 ---
 
 ## ObjectStore Class
+
+`ObjectStore` is the **core API** of this package. Its operation surface mirrors Rust's
+`ObjectStoreExt` extension trait (the convenience API over the `object_store` crate's
+`ObjectStore` trait), so the same calls work uniformly across the in-memory store, the
+local filesystem store, and any wrapped or decorated store (limit, throttle, chunked, ...).
+
+Concrete store classes do not re-implement operations; they expose their
+store-specific configuration and hand back a core `ObjectStore` view of the same
+backing storage via `asObjectStore()` (see [Store Classes](#store-classes)).
 
 ### Constructors
 
@@ -52,11 +68,23 @@ Parses a store URL with optional configuration key-value options. Only `file://`
 
 #### `put(path: string, data: Buffer, options?: PutOptionsInput): Promise<PutResult>`
 
-Atomically writes `data` to `path`.
+Atomically writes `data` to `path`. `options` selects the write mode
+(`modeOverwrite` / `modeCreate` / `modeUpdate`) and may carry `tags` and
+`attributes`.
 
 #### `putOpts(path: string, data: Buffer, options: PutOptionsInput): Promise<PutResult>`
 
 Alias for `put` with explicit options.
+
+#### `putMultipart(path: string, options?: PutMultipartOptionsInput): Promise<MultipartUpload>`
+
+Starts a multipart upload and returns a handle (`putPart` / `complete` / `abort`).
+Prefer `put` for small payloads; use this for large or streaming uploads.
+`options` carries the same `tags` / `attributes` as `put`.
+
+#### `putMultipartOpts(path: string, options?: PutMultipartOptionsInput): Promise<MultipartUpload>`
+
+Alias for `putMultipart`.
 
 #### `get(path: string, options?: GetOptionsInput): Promise<Buffer>`
 
@@ -66,9 +94,10 @@ Fetches object byte content.
 
 Fetches object byte content with conditional or range options.
 
-#### `getWithMeta(path: string): Promise<GetResult>`
+#### `getWithMeta(path: string, options?: GetOptionsInput): Promise<GetResult>`
 
-Fetches object byte content along with metadata.
+Fetches object byte content along with metadata, the byte range that was
+actually served, and the attributes stored with the object.
 
 #### `head(path: string, options?: HeadOptionsInput): Promise<ObjectMeta>`
 
@@ -78,13 +107,27 @@ Fetches object metadata without downloading content.
 
 Alias for `head`.
 
-#### `delete(path: string, options?: DeleteOptionsInput): Promise<void>`
+#### `delete(path: string): Promise<void>`
 
-Deletes an object.
+Deletes an object. There are no delete options: object_store deletes are
+unconditional, so conditional removal is expressed as a `put` with
+`modeUpdate`.
 
-#### `deleteOpts(path: string, options?: DeleteOptionsInput): Promise<void>`
+#### `deleteStream(locations: Array<string>): Promise<Array<DeleteStreamResult>>`
 
-Alias for `delete`.
+Bulk-deletes all objects at `locations`. Backends with native bulk delete
+(S3, Azure) batch requests; others delete concurrently. Returns one result per
+input location, in order:
+
+```typescript
+export interface DeleteStreamResult {
+  path: string;
+  error?: string;
+}
+```
+
+Note: whether deleting a non-existent object errors or succeeds depends on the
+backend (S3 and in-memory return success; local, GCP, and Azure error).
 
 #### `list(prefix?: string, options?: ListOptionsInput): Promise<Array<ObjectMeta>>`
 
@@ -96,7 +139,15 @@ Alias for `list`.
 
 #### `listWithDelimiter(prefix?: string): Promise<ListResult>`
 
-Lists objects and common prefixes (directories) at `prefix`.
+Lists objects with the given prefix and an implementation-specific delimiter.
+Non-recursive: returns common prefixes ("directories") in addition to object
+metadata.
+
+#### `listWithOffset(prefix?: string, offset: string): Promise<Array<ObjectMeta>>`
+
+Lists all objects with the given prefix whose location is greater than
+`offset` (exclusive). Some stores (S3, GCS) can push the offset down to reduce
+network requests.
 
 #### `copy(from: string, to: string, options?: CopyOptionsInput): Promise<void>`
 
@@ -106,17 +157,82 @@ Copies object from path `from` to `to`.
 
 Alias for `copy`.
 
+#### `copyIfNotExists(from: string, to: string): Promise<void>`
+
+Copies object from path `from` to `to`, only if the destination is empty.
+Errors if an object already exists at `to`. Atomic when the backend supports it.
+
 #### `rename(from: string, to: string, options?: RenameOptionsInput): Promise<void>`
 
-Renames/moves object from path `from` to `to`.
+Renames/moves object from path `from` to `to`. By default this is a copy of
+the source followed by a delete of the source.
 
 #### `renameOpts(from: string, to: string, options?: RenameOptionsInput): Promise<void>`
 
 Alias for `rename`.
 
+#### `renameIfNotExists(from: string, to: string): Promise<void>`
+
+Moves object from path `from` to `to`, only if the destination does not already
+exist. Errors if an object already exists at `to`.
+
+#### `getRange(path: string, range: Range): Promise<Buffer>`
+
+Fetches the bytes stored at `path` within the half-open byte range
+`[range.start, range.end)`.
+
 #### `getRanges(path: string, ranges: Array<Range>): Promise<Array<Buffer>>`
 
 Performs vectored IO, fetching non-contiguous byte ranges in parallel.
+
+---
+
+## Store Classes
+
+Concrete store classes hold a specific backend type so they can expose
+store-specific configuration. They do **not** re-implement object operations;
+call `asObjectStore()` to get the core `ObjectStore` API backed by the same
+storage.
+
+### `InMemory`
+
+- `new InMemory()` — create new in-memory storage.
+- `fork(): InMemory` — snapshot the current contents into a brand-new store.
+- `asObjectStore(): ObjectStore` — core operation surface over this store.
+- Also accepted by `MultipartStore.fromInMemory(store)` and `ThrottledStore.new(store, config?)`.
+
+```typescript
+const store = new InMemory();
+const view = store.asObjectStore();
+await view.put("hello.txt", Buffer.from("world"));
+```
+
+### `LocalFileSystem`
+
+- `new LocalFileSystem()` — storage rooted at the filesystem root.
+- `LocalFileSystem.newWithPrefix(prefix: string)` — storage rooted at `prefix`.
+- Builder methods (`withFsync`, `withAutomaticCleanup`, ...) return a new store.
+- `pathToFilesystem(location: string): string` — absolute filesystem path of an object.
+- `asObjectStore(): ObjectStore` — core operation surface over this store.
+
+### `LimitStore`
+
+- `LimitStore.new(store: ObjectStore, maxRequests: number)` — bounds concurrent
+  outstanding operations.
+- `asObjectStore(): ObjectStore` — core operation surface (concurrency-limited).
+
+### `ThrottledStore`
+
+- `ThrottledStore.new(inner: InMemory, config?: ThrottleConfig)` — wraps an
+  in-memory store with deterministic per-call sleeps.
+- `asObjectStore(): ObjectStore` / `asMultipartStore(): MultipartStore`.
+- `getConfig(): ThrottleConfig` / `configure(config: ThrottleConfig)`.
+
+### `ChunkedStore`
+
+- `ChunkedStore.new(store: ObjectStore, chunkSize: number)` — forces `get`
+  responses to be returned in fixed-size chunks (test helper).
+- `asObjectStore(): ObjectStore` — core operation surface (chunked gets).
 
 ---
 
@@ -139,6 +255,13 @@ export interface PutResult {
 export interface GetResult {
   bytes: Buffer;
   meta: ObjectMeta;
+  /**
+   * The byte range actually served — the whole object unless the request
+   * carried a range.
+   */
+  range: Range;
+  /** Attributes stored with the object; empty for stores without support. */
+  attributes: Record<string, string>;
 }
 
 export interface ListResult {
@@ -177,6 +300,17 @@ export interface PutOptionsInput {
   modeOverwrite?: boolean;
   modeCreate?: boolean;
   modeUpdate?: UpdateVersionInput;
+  /** Object tags. Ignored by stores without tagging support. */
+  tags?: Record<string, string>;
+  /** Object attributes. Unsupported stores return an error. */
+  attributes?: Record<string, string>;
+}
+
+export interface PutMultipartOptionsInput {
+  /** Object tags. Ignored by stores without tagging support. */
+  tags?: Record<string, string>;
+  /** Object attributes. Unsupported stores return an error. */
+  attributes?: Record<string, string>;
 }
 
 export interface CopyOptionsInput {
@@ -196,11 +330,27 @@ export interface HeadOptionsInput {
   version?: string;
 }
 
-export interface DeleteOptionsInput {
-  dummy?: boolean;
-}
-
 export interface ListOptionsInput {
   offset?: string;
 }
 ```
+
+### Attribute keys
+
+`attributes` maps onto object_store's fixed attribute set. These keys are matched
+case-insensitively and canonicalised to lower case; every other key becomes a
+user-defined metadata entry (its original casing is preserved on the way back):
+
+| Key | Attribute |
+|---|---|
+| `content-disposition` | `ContentDisposition` |
+| `content-encoding` | `ContentEncoding` |
+| `content-language` | `ContentLanguage` |
+| `content-type` | `ContentType` |
+| `cache-control` | `CacheControl` |
+| `storage-class` | `StorageClass` |
+| anything else | `Metadata(key)` |
+
+Empty keys are rejected. Attributes are readable through
+[`getWithMeta`](#getwithmetapath-options), not through `head`/`list`, matching
+object_store: unlike `ObjectMeta`, they are not returned by listing APIs.

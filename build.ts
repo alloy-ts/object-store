@@ -14,6 +14,7 @@ async function run() {
   await cli.build({
     platform: true,
     esm: true,
+    format: "esm",
     outputDir: "./dist",
     release: isRelease,
     target,
@@ -21,14 +22,6 @@ async function run() {
     crossCompile,
     useCross,
   });
-
-  const fs = await import("node:fs");
-  const path = await import("node:path");
-  if (fs.existsSync("./dist")) {
-    for (const file of fs.readdirSync("./dist")) {
-      fs.copyFileSync(path.join("./dist", file), path.join(".", file));
-    }
-  }
 }
 
 void run().catch((err) => {

@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { InMemory, MultipartStore } from "../index.js";
+import { InMemory, MultipartStore } from "../dist/index.js";
 
 test("MultipartStore - create / put_part / complete round-trip", async () => {
   const store = new InMemory();
@@ -13,7 +13,7 @@ test("MultipartStore - create / put_part / complete round-trip", async () => {
   const res = await mp.completeMultipart("big.bin", id, [p0, p1]);
   expect(res.eTag).toBeDefined();
 
-  const data = await store.get("big.bin");
+  const data = await store.asObjectStore().get("big.bin");
   expect(data.toString()).toBe("hello world");
 });
 
@@ -27,5 +27,21 @@ test("MultipartStore - abort discards the upload", async () => {
   await mp.abortMultipart("aborted.bin", id);
 
   // Completing after abort should fail / the object should not exist.
-  await expect(store.get("aborted.bin")).rejects.toBeDefined();
+  await expect(store.asObjectStore().get("aborted.bin")).rejects.toBeDefined();
+});
+
+test("MultipartStore - createMultipartOpts forwards attributes to the object", async () => {
+  const store = new InMemory();
+  const mp = MultipartStore.fromInMemory(store);
+
+  const id = await mp.createMultipartOpts("attrs.bin", {
+    tags: { team: "storage" },
+    attributes: { "cache-control": "max-age=60" },
+  });
+  const p0 = await mp.putPart("attrs.bin", id, 0, Buffer.from("data"));
+  await mp.completeMultipart("attrs.bin", id, [p0]);
+
+  const res = await store.asObjectStore().getWithMeta("attrs.bin");
+  expect(res.attributes["cache-control"]).toBe("max-age=60");
+  expect((await store.asObjectStore().get("attrs.bin")).toString()).toBe("data");
 });
