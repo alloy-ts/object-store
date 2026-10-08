@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { ObjectStore } from "../../index.js";
+import { ObjectStore } from "../../dist/index.js";
 
 test("Get - get, getWithMeta, getOpts", async () => {
   const store = ObjectStore.createInMemory();

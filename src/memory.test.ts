@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { InMemory } from "../index.js";
+import { InMemory } from "../dist/index.js";
 
 test("InMemory - new, put, get round-trip via the core ObjectStore API", async () => {
   const store = new InMemory().asObjectStore();

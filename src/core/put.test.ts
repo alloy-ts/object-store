@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { ObjectStore } from "../../index.js";
+import { ObjectStore } from "../../dist/index.js";
 
 test("Put - put and putOpts", async () => {
   const store = ObjectStore.createInMemory();
@@ -70,7 +70,7 @@ test("Put - putMultipart streams parts and completes into one object", async () 
 });
 
 test("Put - putMultipart accepts PutPayload parts", async () => {
-  const { PutPayload } = await import("../../index.js");
+  const { PutPayload } = await import("../../dist/index.js");
   const store = ObjectStore.createInMemory();
 
   const upload = await store.putMultipart("payloads.bin");

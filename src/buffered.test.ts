@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { BufReader, BufWriter, InMemory } from "../index.js";
+import { BufReader, BufWriter, InMemory } from "../dist/index.js";
 
 test("BufReader - reads sequentially and supports seek", async () => {
   const store = new InMemory().asObjectStore();

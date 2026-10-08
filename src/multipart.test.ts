@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { InMemory, MultipartStore } from "../index.js";
+import { InMemory, MultipartStore } from "../dist/index.js";
 
 test("MultipartStore - create / put_part / complete round-trip", async () => {
   const store = new InMemory();
