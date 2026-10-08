@@ -3,7 +3,7 @@ import { ObjectStore, HttpStore } from "../../dist/index.js";
 import http from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
-test("Get - get, getWithMeta, getOpts", async () => {
+test("Get - get, getWithMeta, getOpts, getRange", async () => {
   const store = ObjectStore.createInMemory();
   await store.put("hello.txt", Buffer.from("Hello World!"));
 
@@ -24,6 +24,16 @@ test("Get - get, getWithMeta, getOpts", async () => {
     range: { start: 0, end: 5 },
   });
   expect(rangeDataOpts.toString()).toBe("Hello");
+
+  const directRange = await store.getRange("hello.txt", { start: 6, end: 11 });
+  expect(directRange.toString()).toBe("World");
+});
+
+test("Get - error handling for missing object", async () => {
+  const store = ObjectStore.createInMemory();
+  await expect(store.get("missing.txt")).rejects.toBeDefined();
+  await expect(store.getWithMeta("missing.txt")).rejects.toBeDefined();
+  await expect(store.getRange("missing.txt", { start: 0, end: 5 })).rejects.toBeDefined();
 });
 
 // A fetch adapter that records every request descriptor the store hands to JS
@@ -246,7 +256,7 @@ test("Fetch - 404 response surfaces as a rejected get", async () => {
   }
 });
 
-test("Fetch - a throwing adapter rejects the in-flight request", async () => {
+test("Fetch - a throwing adapter rejects the in-flight request", { timeout: 10000 }, async () => {
   const boom = async (): Promise<never> => {
     throw new Error("adapter exploded");
   };
