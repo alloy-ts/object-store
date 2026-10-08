@@ -426,7 +426,13 @@ export declare class MultipartStore {
   static fromInMemory(store: InMemory): MultipartStore
   /** Creates a new multipart upload, returning the `MultipartId`. */
   createMultipart(path: string): Promise<string>
-  /** Creates a new multipart upload with the given options, returning the `MultipartId`. */
+  /**
+   * Creates a new multipart upload with the given options, returning the `MultipartId`.
+   *
+   * Wraps `MultipartStore::create_multipart_opts`, so `tags` and `attributes`
+   * are honoured by backends that support them (in this build: `InMemory`) and
+   * rejected with `NotSupported` by those that do not.
+   */
   createMultipartOpts(path: string, options?: PutMultipartOptionsInput | undefined | null): Promise<string>
   /** Uploads a new part with index `part_idx`. */
   putPart(path: string, id: string, partIdx: number, data: Buffer | PutPayload): Promise<PartId>
@@ -466,8 +472,7 @@ export declare class ObjectStore {
   copy(from: string, to: string, options?: CopyOptionsInput | undefined | null): Promise<void>
   copyOpts(from: string, to: string, options?: CopyOptionsInput | undefined | null): Promise<void>
   copyIfNotExists(from: string, to: string): Promise<void>
-  delete(path: string, options?: DeleteOptionsInput | undefined | null): Promise<void>
-  deleteOpts(path: string, options?: DeleteOptionsInput | undefined | null): Promise<void>
+  delete(path: string): Promise<void>
   deleteStream(locations: Array<string>): Promise<Array<DeleteStreamResult>>
   /**
    * Return the bytes stored at `path`.
@@ -510,23 +515,30 @@ export declare class ObjectStore {
    *
    * Wraps `ObjectStoreExt::put`. The payload is buffered in memory; use
    * `putMultipart` for streaming uploads. Passing `options` routes through
-   * `ObjectStore::put_opts` (Overwrite/Create/Update modes).
+   * `ObjectStore::put_opts` (Overwrite/Create/Update modes, tags and
+   * attributes).
    */
   put(path: string, data: Buffer | PutPayload, options?: PutOptionsInput | undefined | null): Promise<PutResult>
   /**
    * Save the provided bytes to `path` with the given options.
    *
-   * Wraps `ObjectStore::put_opts` (Overwrite/Create/Update modes). The
-   * operation is atomic. For no-option writes see `put`; for streaming
-   * uploads see `putMultipart`.
+   * Wraps `ObjectStore::put_opts` (Overwrite/Create/Update modes, tags and
+   * attributes). The operation is atomic. For no-option writes see `put`; for
+   * streaming uploads see `putMultipart`.
    */
   putOpts(path: string, data: Buffer | PutPayload, options: PutOptionsInput): Promise<PutResult>
   /**
    * Start a multipart upload, returning a handle to feed parts into.
    *
-   * Wraps `ObjectStoreExt::put_multipart`. Prefer `put` for small payloads.
+   * Wraps `ObjectStore::put_multipart_opts`, so `options` carries the same
+   * tags/attributes as [`put`](#method.put). Prefer `put` for small payloads.
    */
-  putMultipart(path: string): Promise<MultipartUpload>
+  putMultipart(path: string, options?: PutMultipartOptionsInput | undefined | null): Promise<MultipartUpload>
+  /**
+   * Start a multipart upload with the given options, returning a handle to feed
+   * parts into (`ObjectStore::put_multipart_opts`).
+   */
+  putMultipartOpts(path: string, options?: PutMultipartOptionsInput | undefined | null): Promise<MultipartUpload>
   getRanges(path: string, ranges: Array<Range>): Promise<Array<Buffer>>
   /**
    * Move an object from `from` to `to`, overwriting any existing object.
@@ -646,6 +658,32 @@ export declare class PutPayloadMut {
 }
 
 /**
+ * A collection of key value pairs used to annotate objects
+ *
+ * https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-tagging.html
+ * https://learn.microsoft.com/en-us/rest/api/storageservices/set-blob-tags
+ */
+export declare class TagSet {
+  /** Create a new empty [`TagSet`]. */
+  constructor()
+  /**
+   * Append a key value pair to this [`TagSet`].
+   *
+   * Stores have different restrictions on what characters are permitted,
+   * for portability it is recommended applications use no more than 10 tags,
+   * and stick to alphanumeric characters, and + - = . _ : /
+   *
+   * https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectTagging.html
+   * https://learn.microsoft.com/en-us/rest/api/storageservices/set-blob-tags?tabs=azure-ad#request-body
+   */
+  push(key: string, value: string): void
+  /** Return this [`TagSet`] as a URL-encoded string. */
+  encoded(): string
+  /** Return whether this [`TagSet`] contains any tags. */
+  isEmpty(): boolean
+}
+
+/**
  * NAPI binding for `object_store::throttle::ThrottledStore`.
  *
  * Wraps an [`InMemory`] store with deterministic `sleep` calls for performance
@@ -687,10 +725,6 @@ export interface BufWriterOptions {
 
 export interface CopyOptionsInput {
   ifNotExists?: boolean
-}
-
-export interface DeleteOptionsInput {
-  dummy?: boolean
 }
 
 export interface DeleteStreamResult {
@@ -738,6 +772,8 @@ export interface GetRangeInput {
 export interface GetResult {
   bytes: Buffer
   meta: ObjectMeta
+  range: Range
+  attributes: Record<string, string>
 }
 
 export interface HeadOptionsInput {
@@ -878,13 +914,16 @@ export interface PartId {
 }
 
 export interface PutMultipartOptionsInput {
-  dummy?: boolean
+  tags?: Record<string, string>
+  attributes?: Record<string, string>
 }
 
 export interface PutOptionsInput {
   modeOverwrite?: boolean
   modeCreate?: boolean
   modeUpdate?: UpdateVersionInput
+  tags?: Record<string, string>
+  attributes?: Record<string, string>
 }
 
 export interface PutResult {

@@ -1,11 +1,20 @@
-use crate::fetch::fetch_connector;
+use crate::core::get::fetch_connector;
 use crate::store::ObjectStore as NapiObjectStore;
 use napi::bindgen_prelude::Unknown;
 use napi_derive::napi;
 use object_store::http::{HttpBuilder, HttpStore as RSHttpStore};
-use object_store::ClientOptions;
-use object_store::ObjectStore as ObjectStoreTrait;
-use object_store::RetryConfig;
+use object_store::path::Path;
+use object_store::{
+  ClientOptions, CopyOptions, GetOptions, GetResult, ListResult, MultipartUpload, ObjectMeta,
+  ObjectStore as ObjectStoreTrait, PutMultipartOptions, PutOptions, PutPayload, PutResult,
+  RenameOptions, RetryConfig, Result,
+};
+use bytes::Bytes;
+use futures::stream::BoxStream;
+use std::fmt::{Debug, Display, Formatter};
+use std::future::Future;
+use std::ops::Range;
+use std::pin::Pin;
 use std::sync::Arc;
 
 /// Optional configuration for constructing an [`HttpStore`].
@@ -57,8 +66,139 @@ pub struct HttpOptions {
 /// `put_multipart` / `rename` return `NotImplemented` (matching
 /// object_store's own limitations for HTTP).
 #[napi]
+#[derive(Clone)]
 pub struct HttpStore {
   pub(crate) inner: Arc<RSHttpStore>,
+}
+
+impl Debug for HttpStore {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    write!(f, "HttpStore({})", self.inner)
+  }
+}
+
+impl Display for HttpStore {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    write!(f, "HttpStore({})", self.inner)
+  }
+}
+
+#[deny(clippy::missing_trait_methods)]
+impl ObjectStoreTrait for HttpStore {
+  fn put_opts<'life0, 'life1, 'async_trait>(
+    &'life0 self,
+    location: &'life1 Path,
+    payload: PutPayload,
+    opts: PutOptions,
+  ) -> Pin<Box<dyn Future<Output = Result<PutResult>> + Send + 'async_trait>>
+  where
+    Self: 'async_trait,
+    'life0: 'async_trait,
+    'life1: 'async_trait,
+  {
+    self.inner.put_opts(location, payload, opts)
+  }
+
+  fn put_multipart_opts<'life0, 'life1, 'async_trait>(
+    &'life0 self,
+    location: &'life1 Path,
+    opts: PutMultipartOptions,
+  ) -> Pin<Box<dyn Future<Output = Result<Box<dyn MultipartUpload>>> + Send + 'async_trait>>
+  where
+    Self: 'async_trait,
+    'life0: 'async_trait,
+    'life1: 'async_trait,
+  {
+    self.inner.put_multipart_opts(location, opts)
+  }
+
+  fn get_opts<'life0, 'life1, 'async_trait>(
+    &'life0 self,
+    location: &'life1 Path,
+    options: GetOptions,
+  ) -> Pin<Box<dyn Future<Output = Result<GetResult>> + Send + 'async_trait>>
+  where
+    Self: 'async_trait,
+    'life0: 'async_trait,
+    'life1: 'async_trait,
+  {
+    self.inner.get_opts(location, options)
+  }
+
+  fn delete_stream(
+    &self,
+    locations: BoxStream<'static, Result<Path>>,
+  ) -> BoxStream<'static, Result<Path>> {
+    self.inner.delete_stream(locations)
+  }
+
+  fn list(&self, prefix: Option<&Path>) -> BoxStream<'static, Result<ObjectMeta>> {
+    self.inner.list(prefix)
+  }
+
+  fn list_with_delimiter<'life0, 'life1, 'async_trait>(
+    &'life0 self,
+    prefix: Option<&'life1 Path>,
+  ) -> Pin<Box<dyn Future<Output = Result<ListResult>> + Send + 'async_trait>>
+  where
+    Self: 'async_trait,
+    'life0: 'async_trait,
+    'life1: 'async_trait,
+  {
+    self.inner.list_with_delimiter(prefix)
+  }
+
+  fn copy_opts<'life0, 'life1, 'life2, 'async_trait>(
+    &'life0 self,
+    from: &'life1 Path,
+    to: &'life2 Path,
+    options: CopyOptions,
+  ) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'async_trait>>
+  where
+    Self: 'async_trait,
+    'life0: 'async_trait,
+    'life1: 'async_trait,
+    'life2: 'async_trait,
+  {
+    self.inner.copy_opts(from, to, options)
+  }
+
+  fn get_ranges<'life0, 'life1, 'life2, 'async_trait>(
+    &'life0 self,
+    location: &'life1 Path,
+    ranges: &'life2 [Range<u64>],
+  ) -> Pin<Box<dyn Future<Output = Result<Vec<Bytes>>> + Send + 'async_trait>>
+  where
+    Self: 'async_trait,
+    'life0: 'async_trait,
+    'life1: 'async_trait,
+    'life2: 'async_trait,
+  {
+    self.inner.get_ranges(location, ranges)
+  }
+
+  fn list_with_offset(
+    &self,
+    prefix: Option<&Path>,
+    offset: &Path,
+  ) -> BoxStream<'static, Result<ObjectMeta>> {
+    self.inner.list_with_offset(prefix, offset)
+  }
+
+  fn rename_opts<'life0, 'life1, 'life2, 'async_trait>(
+    &'life0 self,
+    from: &'life1 Path,
+    to: &'life2 Path,
+    options: RenameOptions,
+  ) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'async_trait>>
+  where
+    Self: 'async_trait,
+    'life0: 'async_trait,
+    'life1: 'async_trait,
+    'life2: 'async_trait,
+  {
+    self.inner.rename_opts(from, to, options)
+  }
 }
 
 #[napi]
@@ -79,7 +219,7 @@ impl HttpStore {
   }
 
   fn build(url: String, fetch: Unknown, options: Option<HttpOptions>) -> napi::Result<Self> {
-    let connector = fetch_connector(fetch).map_err(|e| napi::Error::from_reason(e.to_string()))?;
+    let connector = fetch_connector(fetch)?;
 
     let mut builder = HttpBuilder::new()
       .with_url(url)

@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { ObjectStore, HttpStore } from "../../index.js";
+import { ObjectStore, HttpStore } from "../../dist/index.js";
 import http from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
@@ -157,7 +157,7 @@ test("Fetch - adapter receives the full URL and correct method per op", async ()
   const port = await server.start();
   const { adapter, calls } = makeFetchAdapter(server);
   try {
-    const store = new HttpStore(`http://localhost:${port}/`, adapter).asObjectStore();
+    const store = HttpStore.withOptions(`http://localhost:${port}/`, adapter, { allowHttp: true }).asObjectStore();
     await store.put("a/b.txt", Buffer.from("hello"));
     await store.get("a/b.txt");
     await store.head("a/b.txt");
@@ -182,7 +182,7 @@ test("Fetch - bodiless requests pass body: null, PUT passes a Uint8Array", async
   const port = await server.start();
   const { adapter, calls } = makeFetchAdapter(server);
   try {
-    const store = new HttpStore(`http://localhost:${port}/`, adapter).asObjectStore();
+    const store = HttpStore.withOptions(`http://localhost:${port}/`, adapter, { allowHttp: true }).asObjectStore();
     await store.put("a/b.txt", Buffer.from("hello"));
     await store.get("a/b.txt");
 
@@ -202,7 +202,7 @@ test("Fetch - request headers are forwarded as a plain string map", async () => 
   const port = await server.start();
   const { adapter, calls } = makeFetchAdapter(server);
   try {
-    const store = new HttpStore(`http://localhost:${port}/`, adapter).asObjectStore();
+    const store = HttpStore.withOptions(`http://localhost:${port}/`, adapter, { allowHttp: true }).asObjectStore();
     await store.put("a/b.txt", Buffer.from("hello"));
     await store.getRanges("a/b.txt", [{ start: 0, end: 1 }]);
 
@@ -219,7 +219,7 @@ test("Fetch - response status/body propagate to store reads", async () => {
   const port = await server.start();
   const { adapter } = makeFetchAdapter(server);
   try {
-    const store = new HttpStore(`http://localhost:${port}/`, adapter).asObjectStore();
+    const store = HttpStore.withOptions(`http://localhost:${port}/`, adapter, { allowHttp: true }).asObjectStore();
     await store.put("a/b.txt", Buffer.from("hello"));
     const data = await store.get("a/b.txt");
     expect(data.toString()).toBe("hello");
@@ -236,7 +236,7 @@ test("Fetch - 404 response surfaces as a rejected get", async () => {
   const port = await server.start();
   const { adapter } = makeFetchAdapter(server);
   try {
-    const store = new HttpStore(`http://localhost:${port}/`, adapter).asObjectStore();
+    const store = HttpStore.withOptions(`http://localhost:${port}/`, adapter, { allowHttp: true }).asObjectStore();
     await expect(store.get("missing.txt")).rejects.toBeDefined();
   } finally {
     await server.close();
@@ -247,6 +247,6 @@ test("Fetch - a throwing adapter rejects the in-flight request", async () => {
   const boom = async (): Promise<never> => {
     throw new Error("adapter exploded");
   };
-  const store = HttpStore.withOptions("http://localhost:1/", boom, { retryMaxAttempts: 0 }).asObjectStore();
+  const store = HttpStore.withOptions("http://localhost:1/", boom, { allowHttp: true, retryMaxAttempts: 0 }).asObjectStore();
   await expect(store.get("x.txt")).rejects.toThrow(/adapter exploded/);
 });

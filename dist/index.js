@@ -716,7 +716,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { BufReader, BufWriter, ChunkedStore, ClientOptions, HttpClient, HttpStore, InMemory, IoRuntime, LimitStore, LocalFileSystem, MultipartStore, MultipartUpload, ObjectStore, ObjectStoreRegistry, PutPayload, PutPayloadMut, ThrottledStore, ObjectStoreScheme, parseUrlScheme } = nativeBinding
+const { BufReader, BufWriter, ChunkedStore, ClientOptions, HttpClient, HttpStore, InMemory, IoRuntime, LimitStore, LocalFileSystem, MultipartStore, MultipartUpload, ObjectStore, ObjectStoreRegistry, PutPayload, PutPayloadMut, TagSet, ThrottledStore, ObjectStoreScheme, parseUrlScheme } = nativeBinding
 export { BufReader }
 export { BufWriter }
 export { ChunkedStore }
@@ -733,6 +733,7 @@ export { ObjectStore }
 export { ObjectStoreRegistry }
 export { PutPayload }
 export { PutPayloadMut }
+export { TagSet }
 export { ThrottledStore }
 export { ObjectStoreScheme }
 export { parseUrlScheme }
