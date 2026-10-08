@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { ObjectStore } from "../../index.js";
+import { ObjectStore } from "../../dist/index.js";
 
 test("Copy - duplicate object and copyOpts", async () => {
   const store = ObjectStore.createInMemory();

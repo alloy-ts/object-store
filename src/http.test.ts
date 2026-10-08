@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { HttpStore } from "../index.js";
+import { HttpStore } from "../dist/index.js";
 import http from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 

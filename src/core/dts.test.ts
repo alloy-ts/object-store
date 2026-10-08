@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 test("DTS - Verify generated declarations contain strongly typed options and methods", () => {
-  const dtsPath = path.resolve(process.cwd(), "index.d.ts");
+  const dtsPath = path.resolve(process.cwd(), "dist/index.d.ts");
   const content = fs.readFileSync(dtsPath, "utf-8");
 
   const expectedTypes = [

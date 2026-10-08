@@ -5,7 +5,7 @@ import {
   ObjectStore,
   PutPayload,
   PutPayloadMut,
-} from "../index.js";
+} from "../dist/index.js";
 
 const toStr = (b: Buffer) => b.toString();
 

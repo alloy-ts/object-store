@@ -1,5 +1,4 @@
 use crate::store::ObjectStore;
-use crate::types::DeleteOptionsInput;
 use futures::StreamExt;
 use napi_derive::napi;
 use object_store::path::Path;
@@ -14,11 +13,7 @@ pub struct DeleteStreamResult {
 #[napi]
 impl ObjectStore {
   #[napi]
-  pub async fn delete(
-    &self,
-    path: String,
-    _options: Option<DeleteOptionsInput>,
-  ) -> napi::Result<()> {
+  pub async fn delete(&self, path: String) -> napi::Result<()> {
     let location = Path::from(path.as_str());
     self
       .inner
@@ -28,14 +23,6 @@ impl ObjectStore {
     Ok(())
   }
 
-  #[napi]
-  pub async fn delete_opts(
-    &self,
-    path: String,
-    options: Option<DeleteOptionsInput>,
-  ) -> napi::Result<()> {
-    self.delete(path, options).await
-  }
   #[napi]
   pub async fn delete_stream(
     &self,
