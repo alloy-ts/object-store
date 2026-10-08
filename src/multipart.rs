@@ -1,5 +1,5 @@
 use crate::memory::InMemory;
-use crate::payload::{to_put_payload, PutPayload};
+use crate::core::{to_put_payload, PutPayload};
 use crate::types::{PutMultipartOptionsInput, PutResult};
 use napi::bindgen_prelude::{Buffer, Either};
 use napi_derive::napi;

@@ -8,3 +8,4 @@ pub mod ranges;
 pub mod rename;
 
 pub use get::*;
+pub use put::*;
