@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { ObjectStore } from "../index.js";
+import { ObjectStore } from "../dist/index.js";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";

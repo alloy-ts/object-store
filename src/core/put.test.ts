@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { ObjectStore } from "../../index.js";
+import { ObjectStore } from "../../dist/index.js";
 
 test("Put - put and putOpts", async () => {
   const store = ObjectStore.createInMemory();
@@ -70,7 +70,7 @@ test("Put - putMultipart streams parts and completes into one object", async () 
 });
 
 test("Put - putMultipart accepts PutPayload parts", async () => {
-  const { PutPayload } = await import("../../index.js");
+  const { PutPayload } = await import("../../dist/index.js");
   const store = ObjectStore.createInMemory();
 
   const upload = await store.putMultipart("payloads.bin");
@@ -90,4 +90,46 @@ test("Put - putMultipart abort discards the in-progress upload", async () => {
 
   // The object must not exist after abort.
   await expect(store.get("aborted.bin")).rejects.toBeDefined();
+});
+
+test("Put - put forwards tags and attributes that read back on the object", async () => {
+  const store = ObjectStore.createInMemory();
+
+  await store.put("attributed.bin", Buffer.from("payload"), {
+    tags: { team: "storage" },
+    attributes: {
+      "content-type": "application/octet-stream",
+      "cache-control": "max-age=60",
+      "custom-key": "custom-value",
+    },
+  });
+
+  const res = await store.getWithMeta("attributed.bin");
+  expect(res.attributes["content-type"]).toBe("application/octet-stream");
+  expect(res.attributes["cache-control"]).toBe("max-age=60");
+  // Unrecognised keys round-trip as user-defined metadata.
+  expect(res.attributes["custom-key"]).toBe("custom-value");
+});
+
+test("Put - put rejects an empty attribute key", async () => {
+  const store = ObjectStore.createInMemory();
+
+  await expect(
+    store.put("bad.bin", Buffer.from("payload"), { attributes: { "": "value" } }),
+  ).rejects.toBeDefined();
+});
+
+test("Put - putMultipart forwards attributes to the completed object", async () => {
+  const store = ObjectStore.createInMemory();
+
+  const upload = await store.putMultipartOpts("tagged.bin", {
+    tags: { team: "storage" },
+    attributes: { "content-type": "text/plain" },
+  });
+  await upload.putPart(Buffer.from("chunk"));
+  await upload.complete();
+
+  const res = await store.getWithMeta("tagged.bin");
+  expect(res.attributes["content-type"]).toBe("text/plain");
+  expect((await store.get("tagged.bin")).toString()).toBe("chunk");
 });
