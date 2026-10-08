@@ -36,7 +36,7 @@ test("LimitStore - bounded concurrency still completes every operation", async (
 
 test("LimitStore - shares the backing store with the inner store", async () => {
   const inner = new InMemory();
-  const limited = LimitStore.new(inner, 4);
+  const limited = LimitStore.new(inner.asObjectStore(), 4);
 
   // Write through the limited store...
   const limitedStore = limited.asObjectStore();

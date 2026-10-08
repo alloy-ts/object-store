@@ -1,4 +1,4 @@
-use crate::fetch::fetch_connector;
+use crate::core::get::fetch_connector;
 use crate::store::ObjectStore as NapiObjectStore;
 use napi::bindgen_prelude::Unknown;
 use napi_derive::napi;
@@ -76,6 +76,27 @@ impl HttpStore {
   #[napi(factory)]
   pub fn with_options(url: String, fetch: Unknown, options: HttpOptions) -> napi::Result<Self> {
     Self::build(url, fetch, Some(options))
+  }
+
+  /// Create a new [`HttpStore`] for the given base `url` with [`ClientOptions`](crate::client::ClientOptions).
+  #[napi(factory)]
+  pub fn with_client_options(
+    url: String,
+    fetch: Unknown,
+    client_options: &crate::client::ClientOptions,
+  ) -> napi::Result<Self> {
+    let connector = fetch_connector(fetch).map_err(|e| napi::Error::from_reason(e.to_string()))?;
+
+    let store = HttpBuilder::new()
+      .with_url(url)
+      .with_http_connector(connector)
+      .with_client_options(client_options.into())
+      .build()
+      .map_err(|e: object_store::Error| napi::Error::from_reason(e.to_string()))?;
+
+    Ok(Self {
+      inner: Arc::new(store),
+    })
   }
 
   fn build(url: String, fetch: Unknown, options: Option<HttpOptions>) -> napi::Result<Self> {

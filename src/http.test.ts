@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { HttpStore } from "../dist/index.js";
+import { HttpStore, ClientOptions } from "../dist/index.js";
 import http from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
@@ -12,9 +12,12 @@ const fetchAdapter = async (request: {
   headers: Record<string, string>;
   body?: Uint8Array | null;
 }): Promise<{ status: number; headers: Record<string, string>; body: Buffer }> => {
+  const headers = { ...request.headers };
+  delete headers["content-length"];
+  delete headers["Content-Length"];
   const res = await fetch(request.url, {
     method: request.method,
-    headers: request.headers,
+    headers,
     body: request.body ?? undefined,
   });
   const body = await res.arrayBuffer();
@@ -171,8 +174,10 @@ class WebDavServer {
   }
 
   private collectionResponse(key: string, base: string): string {
+    const lastModified = new Date(0).toUTCString();
     return (
       `<response><href>${base}/${key}</href><propstat><prop>` +
+      `<getlastmodified>${lastModified}</getlastmodified>` +
       `<resourcetype><collection/></resourcetype>` +
       `</prop><status>HTTP/1.1 200 OK</status></propstat></response>`
     );
@@ -217,6 +222,21 @@ test("HttpStore - new / withOptions expose the ObjectStore surface", () => {
     retryMaxAttempts: 3,
   });
   expect(typeof optStore.asObjectStore().get).toBe("function");
+});
+
+test("HttpStore - withClientOptions constructs store and executes requests", async () => {
+  const server = new WebDavServer();
+  const port = await server.start();
+  try {
+    const clientOptions = new ClientOptions();
+    clientOptions.withAllowHttp(true);
+    const store = HttpStore.withClientOptions(`http://localhost:${port}/`, fetchAdapter, clientOptions).asObjectStore();
+    await store.put("client_opt.txt", Buffer.from("client_opt_data"));
+    const data = await store.get("client_opt.txt");
+    expect(data.toString()).toBe("client_opt_data");
+  } finally {
+    await server.close();
+  }
 });
 
 test("HttpStore - new rejects a non-URL", () => {

@@ -285,6 +285,8 @@ export declare class HttpStore {
   constructor(url: string, fetch: unknown)
   /** Create a new [`HttpStore`] for the given base `url` with options. */
   static withOptions(url: string, fetch: unknown, options: HttpOptions): HttpStore
+  /** Create a new [`HttpStore`] for the given base `url` with [`ClientOptions`](crate::client::ClientOptions). */
+  static withClientOptions(url: string, fetch: unknown, clientOptions: ClientOptions): HttpStore
   /**
    * Return the underlying store as a regular `ObjectStore` so the full
    * put/get/list/... surface can be used.
@@ -643,6 +645,31 @@ export declare class PutPayloadMut {
   isEmpty(): boolean
   /** Freeze into an immutable [`PutPayload`]. This instance becomes empty. */
   freeze(): PutPayload
+}
+
+/**
+ * A collection of key value pairs used to annotate objects
+ *
+ * https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-tagging.html
+ * https://learn.microsoft.com/en-us/rest/api/storageservices/set-blob-tags
+ */
+export declare class TagSet {
+  constructor()
+  /**
+   * Append a key value pair to this [`TagSet`]
+   *
+   * Stores have different restrictions on what characters are permitted,
+   * for portability it is recommended applications use no more than 10 tags,
+   * and stick to alphanumeric characters, and + - = . _ : /
+   *
+   * https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectTagging.html
+   * https://learn.microsoft.com/en-us/rest/api/storageservices/set-blob-tags?tabs=azure-ad#request-body
+   */
+  push(key: string, value: string): void
+  /** Return this [`TagSet`] as a URL-encoded string */
+  encoded(): string
+  /** Return whether this [`TagSet`] contains any tags */
+  isEmpty(): boolean
 }
 
 /**
