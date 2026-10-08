@@ -1,53 +1,49 @@
-# Starter Template
+# Object Store
 
-TypeScript starter template.
+`@alloy-ts/object-store` is a high-performance native addon for Node.js, providing TypeScript bindings via NAPI (Node-API) for Apache Arrow's [`object_store`](https://crates.io/crates/object_store).
 
-## Development
+It delivers a uniform API for interacting with cloud object storage services (AWS S3, Azure Blob Storage, Google Cloud Storage, Cloudflare R2, WebDAV) and local file systems.
 
-- Configure local hooks:
-
-```bash
-npm run prepare
-```
-
-- Install dependencies:
+## Installation
 
 ```bash
-vp install
+npm install @alloy-ts/object-store
 ```
 
-- Run the unit tests:
+## Features
 
-```bash
-vp test
+- **Uniform API**: Same code works across In-Memory, Local Filesystem, and Cloud URL endpoints.
+- **High Performance**: Native Rust implementation using `object_store` crate.
+- **Strongly Typed**: TypeScript interface definitions for all operations and options.
+
+## Quick Start
+
+```typescript
+import { ObjectStore } from "@alloy-ts/object-store";
+
+async function run() {
+  // Create an in-memory store
+  const store = ObjectStore.createInMemory();
+
+  // Write object
+  await store.put("hello.txt", Buffer.from("Hello Object Store!"));
+
+  // Read object
+  const data = await store.get("hello.txt");
+  console.log(data.toString()); // "Hello Object Store!"
+
+  // Head metadata
+  const meta = await store.head("hello.txt");
+  console.log(`Size: ${meta.size} bytes`);
+}
+
+void run();
 ```
 
-- Run the locally:
+## Documentation
 
-```bash
-npm run dev
-```
+Full API documentation is available in [`docs/api.md`](./docs/api.md).
 
-- Build the library:
+## License
 
-```bash
-npm run build
-```
-
-- Code formatting:
-
-```bash
-npm run fmt
-```
-
-- Linting:
-
-```bash
-npm run lint
-```
-
-- Code check:
-
-```bash
-npm run check
-```
+MIT

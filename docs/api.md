@@ -1,6 +1,6 @@
-# API Reference - `@lib/object-store`
+# API Reference - `@alloy-ts/object-store`
 
-`@lib/object-store` provides high-performance Node.js native bindings for Apache Arrow's `object_store` crate.
+`@alloy-ts/object-store` provides high-performance Node.js native bindings for Apache Arrow's `object_store` crate.
 
 ---
 
@@ -11,16 +11,16 @@
   - [Operations](#operations)
     - [`put(path, data, options?)`](#putpath-data-options)
     - [`putOpts(path, data, options)`](#putoptspath-data-options)
-    - [`putMultipart(path)`](#putmultipartpath)
+    - [`putMultipart(path, options?)`](#putmultipartpath-options)
+    - [`putMultipartOpts(path, options?)`](#putmultipartoptspath-options)
     - [`get(path, options?)`](#getpath-options)
     - [`getOpts(path, options)`](#getoptspath-options)
-    - [`getWithMeta(path)`](#getwithmetapath)
+    - [`getWithMeta(path, options?)`](#getwithmetapath-options)
     - [`getRange(path, range)`](#getrangepath-range)
     - [`getRanges(path, ranges)`](#getrangespath-ranges)
     - [`head(path, options?)`](#headpath-options)
     - [`headOpts(path, options?)`](#headoptspath-options)
-    - [`delete(path, options?)`](#deletepath-options)
-    - [`deleteOpts(path, options?)`](#deleteoptspath-options)
+    - [`delete(path)`](#deletepath)
     - [`deleteStream(locations)`](#deletestreamlocations)
     - [`list(prefix?, options?)`](#listprefix-options)
     - [`listOpts(prefix?, options?)`](#listoptsprefix-options)
@@ -68,16 +68,23 @@ Parses a store URL with optional configuration key-value options. Only `file://`
 
 #### `put(path: string, data: Buffer, options?: PutOptionsInput): Promise<PutResult>`
 
-Atomically writes `data` to `path`.
+Atomically writes `data` to `path`. `options` selects the write mode
+(`modeOverwrite` / `modeCreate` / `modeUpdate`) and may carry `tags` and
+`attributes`.
 
 #### `putOpts(path: string, data: Buffer, options: PutOptionsInput): Promise<PutResult>`
 
 Alias for `put` with explicit options.
 
-#### `putMultipart(path: string): Promise<MultipartUpload>`
+#### `putMultipart(path: string, options?: PutMultipartOptionsInput): Promise<MultipartUpload>`
 
 Starts a multipart upload and returns a handle (`putPart` / `complete` / `abort`).
 Prefer `put` for small payloads; use this for large or streaming uploads.
+`options` carries the same `tags` / `attributes` as `put`.
+
+#### `putMultipartOpts(path: string, options?: PutMultipartOptionsInput): Promise<MultipartUpload>`
+
+Alias for `putMultipart`.
 
 #### `get(path: string, options?: GetOptionsInput): Promise<Buffer>`
 
@@ -87,9 +94,10 @@ Fetches object byte content.
 
 Fetches object byte content with conditional or range options.
 
-#### `getWithMeta(path: string): Promise<GetResult>`
+#### `getWithMeta(path: string, options?: GetOptionsInput): Promise<GetResult>`
 
-Fetches object byte content along with metadata.
+Fetches object byte content along with metadata, the byte range that was
+actually served, and the attributes stored with the object.
 
 #### `head(path: string, options?: HeadOptionsInput): Promise<ObjectMeta>`
 
@@ -99,13 +107,11 @@ Fetches object metadata without downloading content.
 
 Alias for `head`.
 
-#### `delete(path: string, options?: DeleteOptionsInput): Promise<void>`
+#### `delete(path: string): Promise<void>`
 
-Deletes an object.
-
-#### `deleteOpts(path: string, options?: DeleteOptionsInput): Promise<void>`
-
-Alias for `delete`.
+Deletes an object. There are no delete options: object_store deletes are
+unconditional, so conditional removal is expressed as a `put` with
+`modeUpdate`.
 
 #### `deleteStream(locations: Array<string>): Promise<Array<DeleteStreamResult>>`
 
@@ -249,6 +255,13 @@ export interface PutResult {
 export interface GetResult {
   bytes: Buffer;
   meta: ObjectMeta;
+  /**
+   * The byte range actually served — the whole object unless the request
+   * carried a range.
+   */
+  range: Range;
+  /** Attributes stored with the object; empty for stores without support. */
+  attributes: Record<string, string>;
 }
 
 export interface ListResult {
@@ -287,6 +300,17 @@ export interface PutOptionsInput {
   modeOverwrite?: boolean;
   modeCreate?: boolean;
   modeUpdate?: UpdateVersionInput;
+  /** Object tags. Ignored by stores without tagging support. */
+  tags?: Record<string, string>;
+  /** Object attributes. Unsupported stores return an error. */
+  attributes?: Record<string, string>;
+}
+
+export interface PutMultipartOptionsInput {
+  /** Object tags. Ignored by stores without tagging support. */
+  tags?: Record<string, string>;
+  /** Object attributes. Unsupported stores return an error. */
+  attributes?: Record<string, string>;
 }
 
 export interface CopyOptionsInput {
@@ -306,11 +330,27 @@ export interface HeadOptionsInput {
   version?: string;
 }
 
-export interface DeleteOptionsInput {
-  dummy?: boolean;
-}
-
 export interface ListOptionsInput {
   offset?: string;
 }
 ```
+
+### Attribute keys
+
+`attributes` maps onto object_store's fixed attribute set. These keys are matched
+case-insensitively and canonicalised to lower case; every other key becomes a
+user-defined metadata entry (its original casing is preserved on the way back):
+
+| Key | Attribute |
+|---|---|
+| `content-disposition` | `ContentDisposition` |
+| `content-encoding` | `ContentEncoding` |
+| `content-language` | `ContentLanguage` |
+| `content-type` | `ContentType` |
+| `cache-control` | `CacheControl` |
+| `storage-class` | `StorageClass` |
+| anything else | `Metadata(key)` |
+
+Empty keys are rejected. Attributes are readable through
+[`getWithMeta`](#getwithmetapath-options), not through `head`/`list`, matching
+object_store: unlike `ObjectMeta`, they are not returned by listing APIs.

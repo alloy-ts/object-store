@@ -208,7 +208,7 @@ impl HttpService for NodeFetchService {
       .collect();
 
     // Buffer the request body (object_store bodies are in-memory payloads).
-    let body_bytes: Bytes = if body.is_empty() {
+    let body_bytes: Bytes = if body.content_length() == 0 {
       Bytes::new()
     } else {
       use http_body_util::BodyExt;
