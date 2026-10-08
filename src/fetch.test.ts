@@ -230,6 +230,7 @@ test("Fetch - a throwing adapter rejects the in-flight request", async () => {
   };
   const store = HttpStore.withOptions("http://localhost:1/", boom, {
     allowHttp: true,
+    retryMaxAttempts: 0,
   }).asObjectStore();
   await expect(store.get("x.txt")).rejects.toThrow(/adapter exploded/);
 });

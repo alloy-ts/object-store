@@ -88,7 +88,7 @@ class EchoServer {
 
 test("ClientOptions - defaults and config round-trips", () => {
   const options = new ClientOptions();
-  expect(options.getConfigValue("allow_http")).toBeNull();
+  expect(options.getConfigValue("allow_http")).toBe("false");
 
   options.withAllowHttp(true);
   expect(options.getConfigValue("allow_http")).toBe("true");

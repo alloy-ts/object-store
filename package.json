@@ -2,14 +2,12 @@
   "name": "@alloy-ts/object-store",
   "version": "0.0.0",
   "files": [
-    "dist",
-    "main.mjs",
-    "main.d.ts"
+    "dist"
   ],
   "type": "module",
-  "types": "dist/main.d.ts",
+  "types": "dist/index.d.ts",
   "exports": {
-    ".": "./dist/main.mjs",
+    ".": "./dist/index.js",
     "./package.json": "./package.json"
   },
   "scripts": {
@@ -30,6 +28,8 @@
     "@emnapi/runtime": "^1.11.3",
     "@napi-rs/cli": "^3.10.5",
     "@napi-rs/cross-toolchain-x64-target-aarch64": "^1.0.3",
+    "@oxc-node/cli": "^0.1.4",
+    "@oxc-node/core": "^0.1.4",
     "@types/node": "^26.6.2",
     "emnapi": "^1.11.3",
     "vite-plus": "^1.0.0-rc.1"

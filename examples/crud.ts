@@ -1,4 +1,4 @@
-import { ObjectStore } from "../index.js";
+import { ObjectStore } from "@alloy-ts/object-store";
 
 async function main() {
   console.log("--- ObjectStore CRUD Example ---");
