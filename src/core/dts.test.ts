@@ -20,6 +20,8 @@ test("DTS - Verify generated declarations contain strongly typed options and met
     "interface HeadOptionsInput",
     "interface DeleteOptionsInput",
     "interface ListOptionsInput",
+    "interface PaginatedListOptionsInput",
+    "interface PaginatedListResult",
     "getOpts(",
     "putOpts(",
     "copyOpts(",
@@ -27,6 +29,7 @@ test("DTS - Verify generated declarations contain strongly typed options and met
     "headOpts(",
     "deleteOpts(",
     "listOpts(",
+    "listPaginated(",
   ];
 
   for (const expected of expectedTypes) {

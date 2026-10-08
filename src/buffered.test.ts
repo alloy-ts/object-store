@@ -1,8 +1,8 @@
 import { expect, test } from "vite-plus/test";
-import { BufReader, BufWriter, InMemory } from "../../index.js";
+import { BufReader, BufWriter, InMemory } from "../index.js";
 
 test("BufReader - reads sequentially and supports seek", async () => {
-  const store = new InMemory();
+  const store = new InMemory().asObjectStore();
   const data = Buffer.alloc(4096, 7);
   await store.put("reader.txt", data);
 
@@ -34,7 +34,7 @@ test("BufReader - reads sequentially and supports seek", async () => {
 });
 
 test("BufWriter - buffers then flushes via shutdown", async () => {
-  const store = new InMemory();
+  const store = new InMemory().asObjectStore();
   const writer = BufWriter.create(store, "writer.txt", { capacity: 64 });
   await writer.write(Buffer.from("hello "));
   await writer.write(Buffer.from("world"));
@@ -45,7 +45,7 @@ test("BufWriter - buffers then flushes via shutdown", async () => {
 });
 
 test("BufWriter - put path writes bytes", async () => {
-  const store = new InMemory();
+  const store = new InMemory().asObjectStore();
   const writer = BufWriter.create(store, "put.txt", { capacity: 64 });
   await writer.put(Buffer.from([1, 2, 3, 4]));
   await writer.shutdown();
@@ -55,7 +55,7 @@ test("BufWriter - put path writes bytes", async () => {
 });
 
 test("BufWriter - abort discards buffered data", async () => {
-  const store = new InMemory();
+  const store = new InMemory().asObjectStore();
   const writer = BufWriter.create(store, "abort.txt", { capacity: 64 });
   await writer.write(Buffer.from("data"));
   await writer.abort();

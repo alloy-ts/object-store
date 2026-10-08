@@ -1,11 +1,11 @@
 use crate::memory::InMemory;
+use crate::payload::{to_put_payload, PutPayload};
 use crate::types::{PutMultipartOptionsInput, PutResult};
-use bytes::Bytes;
-use napi::bindgen_prelude::Buffer;
+use napi::bindgen_prelude::{Buffer, Either};
 use napi_derive::napi;
 use object_store::multipart::{MultipartStore as MultipartStoreTrait, PartId as RsPartId};
 use object_store::path::Path;
-use object_store::{MultipartId, PutMultipartOptions, PutPayload};
+use object_store::{MultipartId, PutMultipartOptions};
 use std::sync::Arc;
 
 /// A part of a file that has been successfully uploaded in a multipart upload process.
@@ -76,10 +76,10 @@ impl MultipartStore {
     path: String,
     id: String,
     part_idx: u32,
-    data: Buffer,
+    data: Either<Buffer, &PutPayload>,
   ) -> napi::Result<PartId> {
     let location = Path::from(path.as_str());
-    let payload = PutPayload::from(Bytes::from(data.to_vec()));
+    let payload = to_put_payload(data);
     let part: RsPartId = self
       .inner
       .put_part(&location, &id, part_idx as usize, payload)

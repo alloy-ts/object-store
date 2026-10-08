@@ -13,9 +13,9 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "node build.js && vp pack",
-    "build:napi": "node build.js",
-    "build:release": "node build.js --release",
+    "build": "node build.ts && vp pack",
+    "build:napi": "node build.ts",
+    "build:release": "node build.ts --release",
     "dev": "vp pack --watch",
     "start": "vp run src/main.ts",
     "test": "vp test && node --test test.cjs",

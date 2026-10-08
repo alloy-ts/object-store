@@ -34,6 +34,6 @@ test("ThrottledStore - exposes the low-level MultipartStore too", async () => {
   await mp.completeMultipart("big.bin", id, [p0, p1]);
 
   // Verify the data landed in the (shared) inner store.
-  const data = await inner.get("big.bin");
+  const data = await inner.asObjectStore().get("big.bin");
   expect(data.toString()).toBe("foobar");
 });
