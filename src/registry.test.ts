@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { ObjectStore, ObjectStoreRegistry } from "../index.js";
+import { ObjectStore, ObjectStoreRegistry } from "../dist/index.js";
 
 test("registry - register/resolve returns longest prefix and trailing path", async () => {
   const registry = new ObjectStoreRegistry();

@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { ObjectStore } from "../../index.js";
+import { ObjectStore } from "../../dist/index.js";
 
 test("List - list, listOpts and listWithDelimiter", async () => {
   const store = ObjectStore.createInMemory();

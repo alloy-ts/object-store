@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { InMemory, LimitStore } from "../index.js";
+import { InMemory, LimitStore } from "../dist/index.js";
 
 test("LimitStore - wraps a store and round-trips through ObjectStore", async () => {
   const inner = new InMemory().asObjectStore();

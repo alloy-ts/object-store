@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { HttpStore } from "../index.js";
+import { HttpStore } from "../dist/index.js";
 import http from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
@@ -62,7 +62,7 @@ class InMemoryServer {
   }
 
   private key(url: string): string {
-    return decodeURIComponent(new URL(url).pathname).replace(/^\/+/, "");
+    return decodeURIComponent(new URL(url, "http://localhost").pathname).replace(/^\/+/, "");
   }
 
   private collect(req: IncomingMessage): Promise<Buffer> {
