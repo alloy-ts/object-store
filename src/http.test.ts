@@ -171,8 +171,10 @@ class WebDavServer {
   }
 
   private collectionResponse(key: string, base: string): string {
+    const lastModified = new Date(0).toUTCString();
     return (
       `<response><href>${base}/${key}</href><propstat><prop>` +
+      `<getlastmodified>${lastModified}</getlastmodified>` +
       `<resourcetype><collection/></resourcetype>` +
       `</prop><status>HTTP/1.1 200 OK</status></propstat></response>`
     );

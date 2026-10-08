@@ -62,7 +62,7 @@ class InMemoryServer {
   }
 
   private key(url: string): string {
-    return decodeURIComponent(new URL(url).pathname).replace(/^\/+/, "");
+    return decodeURIComponent(new URL(url, "http://localhost").pathname).replace(/^\/+/, "");
   }
 
   private collect(req: IncomingMessage): Promise<Buffer> {

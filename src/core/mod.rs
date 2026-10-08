@@ -6,3 +6,5 @@ pub mod list;
 pub mod put;
 pub mod ranges;
 pub mod rename;
+
+pub use get::*;

@@ -14,7 +14,7 @@ use object_store::client::{
 use object_store::path::Path;
 use object_store::{ClientConfigKey, ClientOptions as RsClientOptions};
 
-use crate::fetch::fetch_connector;
+use crate::core::fetch_connector;
 use crate::spawn::IoRuntime;
 
 /// NAPI binding for `object_store::ClientOptions`.
