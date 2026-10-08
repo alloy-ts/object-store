@@ -14,6 +14,7 @@ async function run() {
   await cli.build({
     platform: true,
     esm: true,
+    format: "esm",
     outputDir: "./dist",
     release: isRelease,
     target,
