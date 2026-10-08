@@ -1,11 +1,10 @@
+use crate::payload::{put_payload_from_input, PutPayloadInput};
 use crate::store::ObjectStore;
 use crate::types::{build_put_options, PutOptionsInput, PutResult};
-use bytes::Bytes;
-use napi::bindgen_prelude::Buffer;
 use napi_derive::napi;
 use object_store::MultipartUpload as MultipartUploadTrait;
 use object_store::path::Path;
-use object_store::{ObjectStoreExt, PutPayload};
+use object_store::ObjectStoreExt;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -20,11 +19,11 @@ impl ObjectStore {
   pub async fn put(
     &self,
     path: String,
-    data: Buffer,
+    data: PutPayloadInput<'_>,
     options: Option<PutOptionsInput>,
   ) -> napi::Result<PutResult> {
     let location = Path::from(path.as_str());
-    let payload = PutPayload::from(Bytes::from(data.to_vec()));
+    let payload = put_payload_from_input(data);
 
     if let Some(opts) = options {
       let put_options = build_put_options(&opts);
@@ -59,7 +58,7 @@ impl ObjectStore {
   pub async fn put_opts(
     &self,
     path: String,
-    data: Buffer,
+    data: PutPayloadInput<'_>,
     options: PutOptionsInput,
   ) -> napi::Result<PutResult> {
     self.put(path, data, Some(options)).await
@@ -97,8 +96,8 @@ impl MultipartUpload {
   /// Upload the next part. Parts are identified by call order; call
   /// `complete` once all parts have been uploaded.
   #[napi]
-  pub async fn put_part(&self, data: Buffer) -> napi::Result<()> {
-    let payload = PutPayload::from(Bytes::from(data.to_vec()));
+  pub async fn put_part(&self, data: PutPayloadInput<'_>) -> napi::Result<()> {
+    let payload = put_payload_from_input(data);
     let mut guard = self.inner.lock().await;
     guard
       .put_part(payload)

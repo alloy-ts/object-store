@@ -1,15 +1,15 @@
+use crate::payload::{put_payload_from_input, PutPayloadInput};
 use crate::types::{
   build_get_options, build_put_options, convert_meta, CopyOptionsInput, DeleteOptionsInput,
   GetOptionsInput, GetResult, HeadOptionsInput, ListOptionsInput, ListResult, ObjectMeta,
   PutOptionsInput, PutResult, Range, RenameOptionsInput,
 };
-use bytes::Bytes;
 use futures::StreamExt;
 use napi::bindgen_prelude::Buffer;
 use napi_derive::napi;
 use object_store::memory::InMemory as RSInMemory;
 use object_store::path::Path;
-use object_store::{ObjectStore as ObjectStoreTrait, ObjectStoreExt, PutPayload};
+use object_store::{ObjectStore as ObjectStoreTrait, ObjectStoreExt};
 use std::sync::Arc;
 
 /// In-memory storage suitable for testing or for opting out of using a cloud
@@ -47,11 +47,11 @@ impl InMemory {
   pub async fn put(
     &self,
     path: String,
-    data: Buffer,
+    data: PutPayloadInput<'_>,
     options: Option<PutOptionsInput>,
   ) -> napi::Result<PutResult> {
     let location = Path::from(path.as_str());
-    let payload = PutPayload::from(Bytes::from(data.to_vec()));
+    let payload = put_payload_from_input(data);
     let store = self.inner.as_ref();
     let res = match options {
       Some(opts) => store
@@ -70,7 +70,7 @@ impl InMemory {
   pub async fn put_opts(
     &self,
     path: String,
-    data: Buffer,
+    data: PutPayloadInput<'_>,
     options: PutOptionsInput,
   ) -> napi::Result<PutResult> {
     self.put(path, data, Some(options)).await

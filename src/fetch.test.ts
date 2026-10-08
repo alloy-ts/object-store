@@ -28,7 +28,10 @@ const makeFetchAdapter = (server: InMemoryServer) => {
       headers: request.headers,
       body: request.body ?? null,
     });
-    const res = await fetch(request.url, {
+    const targetUrl = request.url.startsWith("http")
+      ? request.url
+      : `http://localhost:${server.getPort()}${request.url.startsWith("/") ? "" : "/"}${request.url}`;
+    const res = await fetch(targetUrl, {
       method: request.method,
       headers: request.headers,
       body: request.body ?? undefined,
@@ -57,12 +60,16 @@ class InMemoryServer {
     return this.port;
   }
 
+  getPort(): number {
+    return this.port;
+  }
+
   close(): Promise<void> {
     return new Promise((resolve) => this.server.close(() => resolve()));
   }
 
   private key(url: string): string {
-    return decodeURIComponent(new URL(url).pathname).replace(/^\/+/, "");
+    return decodeURIComponent(new URL(url, "http://localhost").pathname).replace(/^\/+/, "");
   }
 
   private collect(req: IncomingMessage): Promise<Buffer> {
@@ -228,6 +235,6 @@ test("Fetch - a throwing adapter rejects the in-flight request", async () => {
   const boom = async (): Promise<never> => {
     throw new Error("adapter exploded");
   };
-  const store = new HttpStore("http://localhost:1/", boom).asObjectStore();
+  const store = HttpStore.withOptions("http://localhost:1/", boom, { retryMaxAttempts: 0 }).asObjectStore();
   await expect(store.get("x.txt")).rejects.toThrow(/adapter exploded/);
 });

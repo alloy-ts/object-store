@@ -18,7 +18,7 @@ test("ChunkedStore - new rejects a zero chunk size", () => {
 
 test("ChunkedStore - as_object_store exposes the full ObjectStore surface", () => {
   const base = ObjectStore.createInMemory();
-  const store = ChunkedStore.new(base, 8).as_object_store();
+  const store = ChunkedStore.new(base, 8).asObjectStore();
   expect(typeof store.put).toBe("function");
   expect(typeof store.get).toBe("function");
   expect(typeof store.head).toBe("function");
@@ -38,7 +38,7 @@ for (const size of [1, 3, 7, 16, 64, 1000]) {
     const data = makeData(1000);
     await base.put("obj.bin", data);
 
-    const chunked = ChunkedStore.new(base, size).as_object_store();
+    const chunked = ChunkedStore.new(base, size).asObjectStore();
     const out = await chunked.get("obj.bin");
     expect(Buffer.isBuffer(out)).toBe(true);
     expect(out.length).toBe(data.length);
@@ -56,19 +56,19 @@ test("ChunkedStore - small payloads still reassemble (incl. sub-chunk and empty)
   const tiny = makeData(3); // smaller than every chunk size below
   await base.put("tiny.bin", tiny);
   for (const size of [1, 5, 100]) {
-    const chunked = ChunkedStore.new(base, size).as_object_store();
+    const chunked = ChunkedStore.new(base, size).asObjectStore();
     expect((await chunked.get("tiny.bin")).equals(tiny)).toBe(true);
   }
 
   const empty = makeData(0);
   await base.put("empty.bin", empty);
-  const chunked = ChunkedStore.new(base, 4).as_object_store();
+  const chunked = ChunkedStore.new(base, 4).asObjectStore();
   expect((await chunked.get("empty.bin")).equals(empty)).toBe(true);
 });
 
 test("ChunkedStore - put through the wrapper then chunked get round-trips", async () => {
   const base = ObjectStore.createInMemory();
-  const chunked = ChunkedStore.new(base, 5).as_object_store();
+  const chunked = ChunkedStore.new(base, 5).asObjectStore();
   // put goes through the same inner store the chunked view wraps.
   await chunked.put("a/b.bin", makeData(123));
   const out = await chunked.get("a/b.bin");
@@ -79,7 +79,7 @@ test("ChunkedStore - put through the wrapper then chunked get round-trips", asyn
 
 test("ChunkedStore - head/list/delete work via as_object_store", async () => {
   const base = ObjectStore.createInMemory();
-  const chunked = ChunkedStore.new(base, 4).as_object_store();
+  const chunked = ChunkedStore.new(base, 4).asObjectStore();
 
   await chunked.put("x.txt", Buffer.from("hello"));
   const meta = await chunked.head("x.txt");
@@ -99,7 +99,7 @@ test("ChunkedStore - get_ranges returns correct slices across chunks", async () 
   const data = makeData(100);
   await base.put("r.bin", data);
 
-  const chunked = ChunkedStore.new(base, 7).as_object_store();
+  const chunked = ChunkedStore.new(base, 7).asObjectStore();
   const [a, b] = await chunked.getRanges("r.bin", [
     { start: 0, end: 7 }, // one full chunk
     { start: 7, end: 20 }, // spans into the next chunk

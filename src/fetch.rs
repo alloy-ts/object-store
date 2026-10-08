@@ -125,12 +125,12 @@ impl HttpService for NodeFetchService {
       .collect();
 
     // Buffer the request body (object_store bodies are in-memory payloads).
-    let body_bytes: Bytes = if body.is_empty() {
-      Bytes::new()
-    } else {
-      use http_body_util::BodyExt;
-      body.collect().await?.to_bytes()
-    };
+    use http_body_util::BodyExt;
+    let body_bytes: Bytes = body
+      .collect()
+      .await
+      .map_err(|e| HttpError::new_boxed(HttpErrorKind::Request, Box::new(e)))?
+      .to_bytes();
 
     let request = FetchRequest {
       url,

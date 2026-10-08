@@ -1,8 +1,8 @@
 import { expect, test } from "vite-plus/test";
-import { InMemory, LimitStore } from "../index.js";
+import { ObjectStore, LimitStore } from "../index.js";
 
 test("LimitStore - wraps a store and round-trips through ObjectStore", async () => {
-  const inner = new InMemory();
+  const inner = ObjectStore.createInMemory();
   const limited = LimitStore.new(inner, 2);
 
   // The limited store is surfaced as a regular ObjectStore.
@@ -13,12 +13,12 @@ test("LimitStore - wraps a store and round-trips through ObjectStore", async () 
 });
 
 test("LimitStore - rejects a max_requests of zero", () => {
-  const inner = new InMemory();
+  const inner = ObjectStore.createInMemory();
   expect(() => LimitStore.new(inner, 0)).toThrow();
 });
 
 test("LimitStore - bounded concurrency still completes every operation", async () => {
-  const inner = new InMemory();
+  const inner = ObjectStore.createInMemory();
   // A very small limit must not deadlock or drop work.
   const limited = LimitStore.new(inner, 1);
   const store = limited.asObjectStore();
@@ -35,7 +35,7 @@ test("LimitStore - bounded concurrency still completes every operation", async (
 });
 
 test("LimitStore - shares the backing store with the inner store", async () => {
-  const inner = new InMemory();
+  const inner = ObjectStore.createInMemory();
   const limited = LimitStore.new(inner, 4);
 
   // Write through the limited store...

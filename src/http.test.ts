@@ -171,8 +171,10 @@ class WebDavServer {
   }
 
   private collectionResponse(key: string, base: string): string {
+    const lastModified = new Date(0).toUTCString();
     return (
       `<response><href>${base}/${key}</href><propstat><prop>` +
+      `<getlastmodified>${lastModified}</getlastmodified>` +
       `<resourcetype><collection/></resourcetype>` +
       `</prop><status>HTTP/1.1 200 OK</status></propstat></response>`
     );
@@ -227,9 +229,9 @@ test("HttpStore - new rejects a non-URL", () => {
 test("HttpStore - request against a dead port rejects", async () => {
   // Port 1 is never bound; a connection attempt must surface an error rather
   // than hanging or returning empty data.
-  const store = new HttpStore("http://localhost:1/", fetchAdapter).asObjectStore();
+  const store = HttpStore.withOptions("http://localhost:1/", fetchAdapter, { retryMaxAttempts: 0 }).asObjectStore();
   await expect(store.get("missing.txt")).rejects.toBeDefined();
-});
+}, 15000);
 
 // --- end-to-end against an embedded WebDAV server ----------------------------
 

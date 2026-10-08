@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use napi::bindgen_prelude::{Buffer, Unknown};
+use napi::bindgen_prelude::{Buffer, Either3};
 use napi_derive::napi;
 use object_store::PutPayload as RsPutPayload;
 use object_store::PutPayloadMut as RsPutPayloadMut;
@@ -142,27 +142,21 @@ impl PutPayloadMut {
   }
 }
 
+/// Type alias for JS arguments accepting a `PutPayload`, `PutPayloadMut`, or `Buffer`.
+pub type PutPayloadInput<'a> = Either3<&'a PutPayload, &'a mut PutPayloadMut, Buffer>;
+
 /// Accept either a raw `Buffer` or a `PutPayload`/`PutPayloadMut` instance as a
 /// `put` payload, returning the underlying `object_store::PutPayload`.
 ///
 /// Shared by every `put` / `putPart` binding so the parsing lives in one place.
-pub(crate) fn put_payload_from_unknown(value: Unknown) -> napi::Result<RsPutPayload> {
-  let v = value.value();
-  // Buffer path first.
-  if let Ok(buf) = Buffer::from_napi_value(v.env, v.value) {
-    return Ok(RsPutPayload::from(Bytes::from(buf.to_vec())));
+pub(crate) fn put_payload_from_input(data: PutPayloadInput<'_>) -> RsPutPayload {
+  match data {
+    Either3::A(p) => p.inner.clone(),
+    Either3::B(m) => {
+      let mut tmp = RsPutPayloadMut::new();
+      std::mem::swap(&mut m.inner, &mut tmp);
+      tmp.freeze()
+    }
+    Either3::C(buf) => RsPutPayload::from(Bytes::from(buf.to_vec())),
   }
-  // Immutable PutPayload instance.
-  if let Ok(p) = PutPayload::from_napi_value(v.env, v.value) {
-    return Ok(p.inner);
-  }
-  // Builder still in progress: freeze it.
-  if let Ok(mut m) = PutPayloadMut::from_napi_value(v.env, v.value) {
-    let mut tmp = RsPutPayloadMut::new();
-    std::mem::swap(&mut m.inner, &mut tmp);
-    return Ok(tmp.freeze());
-  }
-  Err(napi::Error::from_reason(
-    "put payload must be a Buffer, PutPayload, or PutPayloadMut".to_string(),
-  ))
 }

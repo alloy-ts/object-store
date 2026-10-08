@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { ObjectStore } from "./core.ts";
+import { ObjectStore } from "../index.js";
 
 test("Core API - Put, Get, Head, List", async () => {
   const store = ObjectStore.createInMemory();

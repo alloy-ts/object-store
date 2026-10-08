@@ -4,6 +4,12 @@ out
 dist
 target
 *.node
+index.js
+index.d.ts
+main.mjs
+main.d.mts
+test.cjs
+build.js
 *.wasm
 *.wasi.cjs
 *.wasi.d.cts
@@ -18,3 +24,4 @@ node_modules
 # log files
 logs
 *.log
+.vitest/
