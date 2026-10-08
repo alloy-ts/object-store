@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { ObjectStore, InMemory, PutPayload, PutPayloadMut } from "./index.js";
+import { ObjectStore, InMemory, PutPayload, PutPayloadMut } from "../index.js";
 
 test("PutPayload - constructor creates empty payload", () => {
   const payload = new PutPayload();

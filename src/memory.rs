@@ -1,4 +1,4 @@
-use crate::payload::{put_payload_from_input, PutPayloadInput};
+use crate::core::put::{put_payload_from_input, PutPayloadInput};
 use crate::types::{
   build_get_options, build_put_options, convert_meta, CopyOptionsInput, DeleteOptionsInput,
   GetOptionsInput, GetResult, HeadOptionsInput, ListOptionsInput, ListResult, ObjectMeta,
