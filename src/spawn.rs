@@ -23,7 +23,7 @@ use object_store::client::{HttpClient as RsHttpClient, HttpConnector};
 use object_store::ClientOptions;
 use tokio::runtime::{Handle, Runtime};
 
-use crate::fetch::{fetch_connector, NodeFetchConnector};
+use crate::core::get::{fetch_connector, NodeFetchConnector};
 
 pub use object_store::client::SpawnService;
 
