@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { parseUrlScheme, ObjectStoreScheme } from "../index.js";
+import { parseUrlScheme, ObjectStoreScheme } from "../dist/index.js";
 
 test("parseUrlScheme - local file URLs classify as Local with a filesystem path", () => {
   const res = parseUrlScheme("file:///tmp/foo/bar.txt");

@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { InMemory, ThrottledStore } from "../index.js";
+import { InMemory, ThrottledStore } from "../dist/index.js";
 
 test("ThrottledStore - wraps InMemory and round-trips through ObjectStore", async () => {
   const inner = new InMemory();
