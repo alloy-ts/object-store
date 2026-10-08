@@ -43,6 +43,26 @@ test("Get - getWithMeta reports the served range and attributes", async () => {
   expect(partial.attributes["content-type"]).toBe("text/plain");
 });
 
+test("Get - getting non-existent key rejects with error", async () => {
+  const store = ObjectStore.createInMemory();
+  await expect(store.get("non-existent.txt")).rejects.toBeDefined();
+});
+
+test("Get - range options support offset and suffix reads", async () => {
+  const store = ObjectStore.createInMemory();
+  await store.put("offset.txt", Buffer.from("0123456789"));
+
+  const offsetRead = await store.get("offset.txt", {
+    range: { offset: 5 },
+  });
+  expect(offsetRead.toString()).toBe("56789");
+
+  const suffixRead = await store.get("offset.txt", {
+    range: { suffix: 4 },
+  });
+  expect(suffixRead.toString()).toBe("6789");
+});
+
 // A fetch adapter that records every request descriptor the store hands to JS
 // and delegates the real I/O to a tiny in-memory server.
 type RecordedRequest = {
