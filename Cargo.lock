@@ -3,6 +3,25 @@
 version = 4
 
 [[package]]
+name = "alloy-object-store-native"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "chrono",
+ "futures",
+ "http",
+ "http-body-util",
+ "humantime",
+ "napi",
+ "napi-build",
+ "napi-derive",
+ "object_store",
+ "tokio",
+ "url",
+]
+
+[[package]]
 name = "android_system_properties"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -508,24 +527,6 @@ name = "memchr"
 version = "2.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
-
-[[package]]
-name = "my-addon-native"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "bytes",
- "chrono",
- "futures",
- "http",
- "http-body-util",
- "napi",
- "napi-build",
- "napi-derive",
- "object_store",
- "tokio",
- "url",
-]
 
 [[package]]
 name = "napi"

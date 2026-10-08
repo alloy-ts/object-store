@@ -237,7 +237,9 @@ test("HttpStore - put/get/head/getRanges/list/copy/delete round-trip", async () 
   const server = new WebDavServer();
   const port = await server.start();
   try {
-    const store = new HttpStore(`http://localhost:${port}/`, fetchAdapter).asObjectStore();
+    const store = HttpStore.withOptions(`http://localhost:${port}/`, fetchAdapter, {
+      allowHttp: true,
+    }).asObjectStore();
 
     await store.put("a/b.txt", Buffer.from("hello"));
 
@@ -271,7 +273,9 @@ test("HttpStore - list_with_delimiter returns objects and common prefixes", asyn
   const server = new WebDavServer();
   const port = await server.start();
   try {
-    const store = new HttpStore(`http://localhost:${port}/`, fetchAdapter).asObjectStore();
+    const store = HttpStore.withOptions(`http://localhost:${port}/`, fetchAdapter, {
+      allowHttp: true,
+    }).asObjectStore();
     await store.put("dir/x.txt", Buffer.from("x"));
     await store.put("dir/y.txt", Buffer.from("y"));
     await store.put("top.txt", Buffer.from("t"));

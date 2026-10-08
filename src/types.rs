@@ -2,8 +2,10 @@ use napi::bindgen_prelude::Buffer;
 use napi_derive::napi;
 use chrono::DateTime;
 use object_store::ObjectMeta as RSObjectMeta;
+use object_store::list::PaginatedListOptions as RSPaginatedListOptions;
 use object_store::path::Path;
 use object_store::{GetOptions, GetRange, PutMode, PutOptions, UpdateVersion};
+use std::borrow::Cow;
 
 #[napi(object)]
 pub struct ObjectMeta {
@@ -54,6 +56,33 @@ pub struct GetResult {
 pub struct ListResult {
   pub objects: Vec<ObjectMeta>,
   pub common_prefixes: Vec<String>,
+}
+
+/// Options for a paginated list request
+///
+/// Mirrors `object_store::list::PaginatedListOptions`. The Rust-only
+/// `extensions` field has no JS counterpart and is left empty.
+#[napi(object)]
+pub struct PaginatedListOptionsInput {
+  /// Path to start listing from. The object at this key is not included.
+  pub offset: Option<String>,
+  /// A delimiter used to group keys with a common prefix. Some stores only
+  /// support `/`.
+  pub delimiter: Option<String>,
+  /// The maximum number of paths (objects plus common prefixes) to return.
+  pub max_keys: Option<u32>,
+  /// A page token from a previous request. Behaviour is implementation
+  /// defined if the previous request used a different prefix or options.
+  pub page_token: Option<String>,
+}
+
+/// A [`ListResult`] with an optional pagination token
+#[napi(object)]
+pub struct PaginatedListResult {
+  /// The list result
+  pub result: ListResult,
+  /// If the result set was truncated, the token to fetch the next results
+  pub page_token: Option<String>,
 }
 
 #[napi(object)]
@@ -181,4 +210,19 @@ pub fn build_put_options(input: &PutOptionsInput) -> PutOptions {
     PutMode::Overwrite
   };
   PutOptions::from(mode)
+}
+
+/// Build an `object_store::list::PaginatedListOptions` from the JS
+/// `PaginatedListOptionsInput` shape.
+pub fn build_paginated_options(input: Option<&PaginatedListOptionsInput>) -> RSPaginatedListOptions {
+  let Some(input) = input else {
+    return RSPaginatedListOptions::default();
+  };
+  RSPaginatedListOptions {
+    offset: input.offset.clone(),
+    delimiter: input.delimiter.clone().map(Cow::Owned),
+    max_keys: input.max_keys.map(|max| max as usize),
+    page_token: input.page_token.clone(),
+    extensions: Default::default(),
+  }
 }
