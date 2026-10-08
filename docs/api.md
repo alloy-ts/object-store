@@ -1,6 +1,6 @@
-# API Reference - `@lib/object-store`
+# API Reference - `@alloy-ts/object-store`
 
-`@lib/object-store` provides high-performance Node.js native bindings for Apache Arrow's `object_store` crate.
+`@alloy-ts/object-store` provides high-performance Node.js native bindings for Apache Arrow's `object_store` crate.
 
 ---
 
