@@ -232,6 +232,11 @@ impl ObjectStore {
       .await
       .map_err(|e: object_store::Error| napi::Error::from_reason(e.to_string()))?;
     let meta = convert_meta(&res.meta);
+    let range = Range {
+      start: res.range.start as f64,
+      end: res.range.end as f64,
+    };
+    let attributes = res.attributes.iter().map(|(k, v)| (format!("{k:?}"), format!("{v:?}"))).collect();
     let bytes = res
       .bytes()
       .await
@@ -239,6 +244,8 @@ impl ObjectStore {
     Ok(GetResult {
       bytes: Buffer::from(bytes.as_ref()),
       meta,
+      range,
+      attributes,
     })
   }
 
