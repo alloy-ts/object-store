@@ -3,11 +3,11 @@
   "version": "0.0.0",
   "files": [
     "dist",
-    "index.js",
-    "index.d.ts"
+    "main.mjs",
+    "main.d.ts"
   ],
   "type": "module",
-  "types": "index.d.ts",
+  "types": "dist/main.d.ts",
   "exports": {
     ".": "./dist/main.mjs",
     "./package.json": "./package.json"
@@ -29,6 +29,7 @@
     "@emnapi/core": "^1.11.3",
     "@emnapi/runtime": "^1.11.3",
     "@napi-rs/cli": "^3.10.5",
+    "@napi-rs/cross-toolchain-x64-target-aarch64": "^1.0.3",
     "@types/node": "^26.6.2",
     "emnapi": "^1.11.3",
     "vite-plus": "^1.0.0-rc.1"
