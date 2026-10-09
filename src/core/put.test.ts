@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { ObjectStore, InMemory, PutPayload, PutPayloadMut } from "../../index.js";
+import { ObjectStore, InMemory, PutPayload, PutPayloadMut, TagSet } from "../../dist/index.js";
 
 test("Put - put and putOpts", async () => {
   const store = ObjectStore.createInMemory();
@@ -17,6 +17,58 @@ test("Put - put and putOpts", async () => {
 
   const data2 = await store.get("file.txt");
   expect(data2.toString()).toBe("new content");
+});
+
+test("Put - put with options modeCreate and modeUpdate", async () => {
+  const store = ObjectStore.createInMemory();
+
+  // modeCreate on a new file should succeed
+  const resCreate = await store.put("created.txt", Buffer.from("initial"), {
+    modeCreate: true,
+  });
+  expect(resCreate).toBeDefined();
+
+  // modeCreate on existing file should fail (AlreadyExists)
+  await expect(
+    store.put("created.txt", Buffer.from("overwrite"), {
+      modeCreate: true,
+    })
+  ).rejects.toThrow();
+
+  // modeUpdate with matching version
+  if (resCreate.eTag || resCreate.version) {
+    const resUpdate = await store.put("created.txt", Buffer.from("updated"), {
+      modeUpdate: { eTag: resCreate.eTag, version: resCreate.version },
+    });
+    expect(resUpdate).toBeDefined();
+    expect((await store.get("created.txt")).toString()).toBe("updated");
+  }
+});
+
+test("Put - put with tags and attributes", async () => {
+  const store = ObjectStore.createInMemory();
+
+  await store.put("tagged.txt", Buffer.from("tagged content"), {
+    tags: { env: "test", project: "alloy" },
+    attributes: { "content-type": "text/plain", "custom-attr": "val" },
+  });
+
+  const getRes = await store.getWithMeta("tagged.txt");
+  expect(getRes.attributes["content-type"]).toBe("text/plain");
+  expect(getRes.attributes["custom-attr"]).toBe("val");
+});
+
+test("Put - vectored / gathered write via Buffer[]", async () => {
+  const store = ObjectStore.createInMemory();
+  const buffers = [
+    Buffer.from("part1-"),
+    Buffer.from("part2-"),
+    Buffer.from("part3"),
+  ];
+
+  await store.put("vectored.txt", buffers);
+  const data = await store.get("vectored.txt");
+  expect(data.toString()).toBe("part1-part2-part3");
 });
 
 test("PutPayload - constructor creates empty payload", () => {
@@ -60,8 +112,8 @@ test("PutPayload - put to ObjectStore and InMemory", async () => {
 
   const memStore = new InMemory();
   const payload2 = PutPayload.fromBytes(Buffer.from("mem-content"));
-  await memStore.put("mem.txt", payload2);
-  const memData = await memStore.get("mem.txt");
+  await memStore.asObjectStore().put("mem.txt", payload2);
+  const memData = await memStore.asObjectStore().get("mem.txt");
   expect(memData.toString()).toBe("mem-content");
 });
 
@@ -98,7 +150,43 @@ test("PutPayloadMut - put unfrozen PutPayloadMut directly to store", async () =>
   const builder = new PutPayloadMut();
   builder.extendFromSlice(Buffer.from("mutable-put-data"));
 
-  await store.put("mut.txt", builder);
+  await store.put("mut.txt", builder.freeze());
   const data = await store.get("mut.txt");
   expect(data.toString()).toBe("mutable-put-data");
+});
+
+test("MultipartUpload - putMultipart and putPart flow", async () => {
+  const store = ObjectStore.createInMemory();
+  const upload = await store.putMultipart("large.txt");
+
+  await upload.putPart(Buffer.from("chunk 1 "));
+  await upload.putPart(PutPayload.fromString("chunk 2 "));
+  await upload.putPart([Buffer.from("chunk 3")]);
+
+  const res = await upload.complete();
+  expect(res).toBeDefined();
+
+  const fullData = await store.get("large.txt");
+  expect(fullData.toString()).toBe("chunk 1 chunk 2 chunk 3");
+});
+
+test("MultipartUpload - abort discards upload", async () => {
+  const store = ObjectStore.createInMemory();
+  const upload = await store.putMultipart("aborted.txt");
+
+  await upload.putPart(Buffer.from("partial data"));
+  await upload.abort();
+
+  await expect(store.get("aborted.txt")).rejects.toThrow();
+});
+
+test("TagSet - push, encoded and isEmpty", () => {
+  const tags = new TagSet();
+  expect(tags.isEmpty()).toBe(true);
+
+  tags.push("test/foo", "value sdlks");
+  tags.push("foo", " sdf _ /+./sd");
+
+  expect(tags.isEmpty()).toBe(false);
+  expect(tags.encoded()).toBe("test%2Ffoo=value+sdlks&foo=+sdf+_+%2F%2B.%2Fsd");
 });

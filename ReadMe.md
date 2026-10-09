@@ -1,8 +1,8 @@
 # Object Store
 
-`@alloy-ts/object-store` is a high-performance native addon for Node.js, providing TypeScript bindings via NAPI (Node-API) for Apache Arrow's [`object_store`](https://crates.io/crates/object_store).
+`@alloy-ts/object-store` is a high-performance native Rust addon for Node.js, providing TypeScript bindings via NAPI (Node-API) for Apache Arrow's [`object_store`](https://crates.io/crates/object_store).
 
-It delivers a uniform API for interacting with cloud object storage services (AWS S3, Azure Blob Storage, Google Cloud Storage, Cloudflare R2, WebDAV) and local file systems.
+It delivers a uniform API for interacting with blob-like (or document-like, graph-like) storage across different implementations, such as local database/filesystem, HTTP remote WebDAV, cloud object storage services (AWS S3, Azure Blob Storage, Google Cloud Storage, Cloudflare R2), etc.
 
 ## Installation
 
