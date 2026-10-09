@@ -19,7 +19,6 @@ test("DTS - Verify generated declarations contain strongly typed options and met
     "interface CopyOptionsInput",
     "interface RenameOptionsInput",
     "interface HeadOptionsInput",
-    "interface DeleteOptionsInput",
     "interface ListOptionsInput",
     "interface PaginatedListOptionsInput",
     "interface PaginatedListResult",
@@ -29,8 +28,6 @@ test("DTS - Verify generated declarations contain strongly typed options and met
     "copyOpts(",
     "renameOpts(",
     "headOpts(",
-    "deleteOpts(",
-    "deleteStream(",
     "listOpts(",
     "listPaginated(",
   ];
